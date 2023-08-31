@@ -1,0 +1,14 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "module": "CommonJS",
+        "noImplicitAny": true,
+        "outDir": "./dist/",
+        "target": "ES6",
+        "jsx": "react",
+        "allowJs": true,
+        "moduleResolution": "Node",
+        "esModuleInterop": true
+    },
+    "include": ["src/**/*"]
+}
