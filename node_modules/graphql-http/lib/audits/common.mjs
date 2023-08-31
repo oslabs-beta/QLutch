@@ -1,6 +1,0 @@
-/**
- *
- * audit/common
- *
- */
-export {};
