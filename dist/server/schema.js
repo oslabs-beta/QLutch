@@ -5,8 +5,13 @@
 //   }
 // `)
 // export default schema;
-const { gql } = require('apollo-server');
-export const typeDefs = gql `
+// const { gql } = require('apollo-server');
+// export const typeDefs = gql`
+//   type Query {
+//     hello : String!
+//   }
+// `
+export const typeDefs = `#graphql
   type Query {
     hello : String!
   }

@@ -9,9 +9,16 @@
 // export default schema;
 
 
-const { gql } = require('apollo-server');
+// const { gql } = require('apollo-server');
 
-export const typeDefs = gql`
+// export const typeDefs = gql`
+//   type Query {
+//     hello : String!
+//   }
+// `
+
+
+export const typeDefs = `#graphql
   type Query {
     hello : String!
   }
