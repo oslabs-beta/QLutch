@@ -8,7 +8,7 @@
     "target": "es2017",
     "jsx": "react",
     "allowJs": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "node",
     "esModuleInterop": true,
     "lib": ["es2020", "dom"],
     "types": ["node"]
