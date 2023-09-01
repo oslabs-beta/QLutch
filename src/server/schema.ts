@@ -1,9 +1,18 @@
-const { buildSchema } = require("graphql");
+// const { buildSchema } = require("graphql");
 
-const schema  = buildSchema(`
+// const schema  = buildSchema(`
+//   type Query {
+//     hello: String
+//   }
+// `)
+
+// export default schema;
+
+
+const { gql } = require('apollo-server');
+
+export const typeDefs = gql`
   type Query {
-    hello: String
+    hello : String!
   }
-`)
-
-export default schema;
+`
