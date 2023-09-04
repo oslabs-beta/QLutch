@@ -1,5 +1,6 @@
 const express = require('express');
 require('dotenv').config();
+const cors = require('cors');
 const { graphqlHTTP } = require('express-graphql');
 const schema = require('./schema/schema')
 const rootValue = require('./resolvers/rootValue')
@@ -9,8 +10,9 @@ const DIST_DIR = path.join(__dirname, '../dist');
 const HTML_FILE = path.join(DIST_DIR, 'index.html');
 
 const app = express();
-
 app.use(express.static(DIST_DIR));
+app.use(cors());
+
 
 // serving html file with react app
 app.get('/', (req, res) => {

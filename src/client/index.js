@@ -1,10 +1,18 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import './style.scss';
+import Dashboard from './components/Dashboard';
 
 
 
 const Index = () => {
-    return <div>Hello</div>
+    return (
+        <>
+            <Dashboard />
+        </>
+    )
 };
-ReactDOM.render(<Index />, document.getElementById('root'));
+
+
+const root = createRoot(document.getElementById('root'))
+root.render(<Index />)
