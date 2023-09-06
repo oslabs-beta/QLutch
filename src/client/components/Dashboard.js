@@ -6,13 +6,13 @@ const Dashboard = () => {
 
     const [text, setText] = useState('');
     const [queryResult, setQueryResult] = useState('');
+    const [status, setStatus] = useState();
 
 
     const handleSubmit = (e) => {
         e.preventDefault();
 
-        // console.log('text:', JSON.stringify(text).split(' '));
-        // console.log('text:', text.split(' '));
+        // console.log('text:', text);
         // console.log('text stringifyed:', JSON.stringify(text));
 
         // requesting data from graphQL
@@ -22,10 +22,15 @@ const Dashboard = () => {
                 "Content-Type": "application/json",
                 Accept: "application/json",
             },
-            // body: JSON.stringify({ query: "{ people (id: 1) {name} }" }),
-            body: JSON.stringify({ query: "{ books  {title} }" }),
+            body: JSON.stringify({ query: "{ people (id: 1) {name} }" })
+            // body: JSON.stringify({ query: "{ books  {title} }" }),
+            // body: JSON.stringify({ query: "{ hello }" })
         })
-            .then(r => r.json())
+            .then(r => {
+                console.log('status: ', r.status)
+                setStatus(r.status);
+                return r.json()
+            })
             .then(data => {
                 setQueryResult(JSON.stringify(data))
                 console.log("data returned:", data)
@@ -37,13 +42,12 @@ const Dashboard = () => {
         setText(e.target.value);
     };
 
-
     return (
         <div>
             <h1><span className='white'>QL</span>utch</h1>
             <div className='dashboard'>
                 <Request handleSubmit={handleSubmit} handleChange={handleChange} text={text} />
-                <Response queryResult={queryResult} />
+                <Response queryResult={queryResult} status={status} />
             </div>
         </div >
     )

@@ -4,6 +4,7 @@ const schema = buildSchema(`
     type Query {
       books: [Book]
       people(id: ID!): People
+      hello : String
     }
 
     type Book {
@@ -13,7 +14,7 @@ const schema = buildSchema(`
 
 
     type People {
-        id: ID!
+        id: ID
         name: String!
     }
 `);

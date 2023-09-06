@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
-const Response = ({queryResult}) => {
+const Response = ({queryResult, status}) => {
 
-    // const [queryResult, setQueryResult] = useState('some data');
-    const [status, setStatus] = useState('some number');
     const [time, setTime] = useState('some time');
     const [size, setSize] = useState('some size');
 
