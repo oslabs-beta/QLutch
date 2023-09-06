@@ -1,4 +1,3 @@
-import { createClient } from 'redis';
 const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
@@ -13,16 +12,6 @@ const HTML_FILE = path.join(DIST_DIR, 'index.html');
 const app = express();
 app.use(express.static(DIST_DIR));
 app.use(cors());
-
-
-//create instance of redis client
-const client = createClient();
-client.on('error', err => console.log('Redis Client Error', err));
-await client.connect();
-
-await client.set('key', 'value');
-const value = await client.get('key');
-
 
 // serving html file with react app
 app.get('/', (req, res) => {
