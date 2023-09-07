@@ -31,19 +31,19 @@ module.exports = {
         ]
     },
     resolve: {
-        extensions: ['.js', '.jsx'], // Allow importing .js and .jsx files without specifying the extension
+        extensions: ['.js', '.jsx'],
     },
     plugins: [
         new HtmlWebPackPlugin({
-            template: './src/client/index.html', // HTML template
+            template: './src/client/index.html', 
         }),
     ],
     devServer: {
-        historyApiFallback: true,
-        proxy: {
-            '/api': 'http://localhost:3000'
+        // historyApiFallback: true,
+        // proxy: {
+        //     '/api': 'http://localhost:3000'
 
-        },
+        // },
         static: {
             directory: path.join(__dirname, 'build'),
             publicPath: '/build'
