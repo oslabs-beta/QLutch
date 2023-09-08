@@ -1,6 +1,9 @@
+const fetch = require("node-fetch");
+const redis = require("../redis");
+
 const rootValue = {
   hello: () => {
-    return 'hello'
+    return "hello";
   },
   books: [
     {
@@ -10,35 +13,35 @@ const rootValue = {
     {
       title: "The Wise Man's Fear",
       author: "Patrick Rothfuss",
-    }
+    },
   ],
-  people: (parent, args, context) => {
+  people: async (parent, args, context) => {
     const peopleId = parent.id;
-    console.log('inside resolver peopleId: ', peopleId)
-
-
+    console.log("inside resolver peopleId: ", peopleId);
     // fetch(`http://swapi.dev/api/people/${peopleId}`)
     //   .then((data) => data.json())
     //   .then((result) => {
     //     console.log(result.name)
     //     return {name : result.name}
     //   })
-
-    return new Promise((resolve, reject) => {
-      fetch(`http://swapi.dev/api/people/${peopleId}`)
-        .then((data) => data.json())
-        .then((result) => {
-          console.log(result.name)
-          resolve({ name: result.name })
-        })
-        .catch(error => {
-          reject(error);
-        });
-    })
-
-
-  }
+    const person = await redis.get(`id${parent.id}`);
+    if (person) {
+      return { name: person };
+    } else {
+      return new Promise((resolve, reject) => {
+        fetch(`http://swapi.dev/api/people/${peopleId}`)
+          .then((data) => data.json())
+          .then((result) => {
+            console.log(result.name);
+            redis.set("id1", result.name);
+            resolve({ name: result.name });
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    }
+  },
 };
-
 
 module.exports = rootValue;
