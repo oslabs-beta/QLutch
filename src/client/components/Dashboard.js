@@ -11,7 +11,8 @@ const Dashboard = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
+        //get time of button click
+        const start = new Date();
         // console.log('text:', text);
         // console.log('text stringifyed:', JSON.stringify(text));
 
@@ -21,6 +22,8 @@ const Dashboard = () => {
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
+                "Content-Length": 2
+                
             },
             body: JSON.stringify({ query: "{ people (id: 1) {name} }" })
             // body: JSON.stringify({ query: "{ books  {title} }" }),
@@ -32,8 +35,9 @@ const Dashboard = () => {
                 return r.json()
             })
             .then(data => {
+                const timeTaken = (new Date())-start;
                 setQueryResult(JSON.stringify(data))
-                console.log("data returned:", data)
+                console.log("data returned:", data, timeTaken)
             })
 
     }

@@ -18,7 +18,6 @@ const rootValue = {
   people: async (parent, args, context) => {
     const peopleId = parent.id;
     console.log("inside resolver peopleId: ", peopleId);
-
     // fetch(`http://swapi.dev/api/people/${peopleId}`)
     //   .then((data) => data.json())
     //   .then((result) => {
