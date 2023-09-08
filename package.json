@@ -21,6 +21,7 @@
     "node-fetch": "^2.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "redis": "^4.6.8",
     "webpack-dev-server": "^4.15.1"
   },
   "devDependencies": {
