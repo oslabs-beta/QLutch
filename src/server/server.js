@@ -28,6 +28,12 @@ app.use(
   })
 );
 
+app.get("/badCacheReset", async (req, res) => {
+  console.log('Cache Flushed')
+  await redis.FLUSHALL();
+  res.sendStatus(200);
+});
+
 app.listen(port), console.log(`Server running on ${port} `);
 
 // graphQl schema

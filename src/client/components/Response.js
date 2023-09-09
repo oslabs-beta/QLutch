@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
+import BarChart from './barchart';
 
-const Response = ({ queryResult, status }) => {
+const Response = ({ queryResult, status, time, size }) => {
 
-    const [time, setTime] = useState('some time');
-    const [size, setSize] = useState('some size');
-    const [dataOrTime, setDataOrTime] = useState('data');
+    const [dataOrTime, setDataOrTime] = useState('time');
 
     return (
         <>
@@ -31,6 +30,7 @@ const Response = ({ queryResult, status }) => {
                 ) : (
                     <div className='form'>
                         <div className='input'>
+                            <BarChart time={time} />
                         </div>
                     </div>
                 )}
