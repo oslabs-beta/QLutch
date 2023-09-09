@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import Request from './Request';
 import Response from './Response';
+import bytes from 'bytes';
 
 const Dashboard = () => {
 
     const [text, setText] = useState('');
     const [queryResult, setQueryResult] = useState('');
     const [status, setStatus] = useState();
+    const [time, setTime] = useState();
+    const [size, setSize] = useState();
 
 
     const handleSubmit = (e) => {
         e.preventDefault();
         //get time of button click
         const start = new Date();
-        // console.log('text:', text);
-        // console.log('text stringifyed:', JSON.stringify(text));
+        let byteSize = 0;
+       
 
         // requesting data from graphQL
         fetch("http://localhost:4000/graphql", {
@@ -22,22 +25,24 @@ const Dashboard = () => {
             headers: {
                 "Content-Type": "application/json",
                 Accept: "application/json",
-                "Content-Length": 2
-                
+                // "Content-Length": 2
+
             },
             body: JSON.stringify({ query: "{ people (id: 1) {name} }" })
             // body: JSON.stringify({ query: "{ books  {title} }" }),
             // body: JSON.stringify({ query: "{ hello }" })
         })
             .then(r => {
-                console.log('status: ', r.status)
                 setStatus(r.status);
+                // console.log(r.headers.get("Content-Length"))
+                byteSize += bytes.parse(JSON.stringify(r.headers).length);
                 return r.json()
             })
             .then(data => {
-                const timeTaken = (new Date())-start;
+                byteSize += bytes.parse(JSON.stringify(data.data).length);
+                setTime((new Date()) - start);
+                setSize(bytes.format(byteSize));
                 setQueryResult(JSON.stringify(data))
-                console.log("data returned:", data, timeTaken)
             })
 
     }
@@ -51,7 +56,7 @@ const Dashboard = () => {
             <h1><span className='white'>QL</span>utch</h1>
             <div className='dashboard'>
                 <Request handleSubmit={handleSubmit} handleChange={handleChange} text={text} />
-                <Response queryResult={queryResult} status={status} />
+                <Response queryResult={queryResult} status={status} time={time} size={size}/>
             </div>
         </div >
     )

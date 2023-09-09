@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bytes": "^3.1.2",
     "concurrently": "^8.2.1",
     "cors": "^2.8.5",
     "express": "^4.18.2",
@@ -20,6 +21,7 @@
     "graphql": "^15.8.0",
     "node-fetch": "^2.7.0",
     "react": "^18.2.0",
+    "react-apexcharts": "^1.4.1",
     "react-dom": "^18.2.0",
     "redis": "^4.6.8",
     "webpack-dev-server": "^4.15.1"

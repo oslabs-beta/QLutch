@@ -4,7 +4,8 @@ const Request = ({ handleSubmit, handleChange, text }) => {
 
     
     const handleClearCache = () => {
-        console.log('handle cache')
+        console.log('Requesting Cache Flush');
+        fetch("http://localhost:4000/badCacheReset");
     }
 
 
