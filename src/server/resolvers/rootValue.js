@@ -20,9 +20,9 @@ const rootValue = {
     console.log("inside resolver peopleId: ", peopleId);
 
     const person = await redis.get(`id${parent.id}`);
-    if (person) {
-      return { name: person };
-    } else {
+    // if (person) {
+    //   return { name: person };
+    // } else {
       return new Promise((resolve, reject) => {
         fetch(`http://swapi.dev/api/people/${peopleId}`)
           .then((data) => data.json())
@@ -35,7 +35,7 @@ const rootValue = {
             reject(error);
           });
       });
-    }
+    // }
   },
 };
 

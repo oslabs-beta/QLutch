@@ -9,18 +9,24 @@ const path = require("path");
 const DIST_DIR = path.join(__dirname, "../dist");
 const HTML_FILE = path.join(DIST_DIR, "index.html");
 const redis = require("./redis");
+const qlutch = require("./qlutch")
 
 const app = express();
 app.use(express.static(DIST_DIR));
 app.use(cors());
+app.use(express.json());
 // serving html file with react app
 app.get("/", (req, res) => {
   res.sendFile(HTML_FILE);
 });
 
 // serving graphQL & graphiql
+app.use("/graphql", qlutch("http://localhost:8080/actualGraphql"), (req,res) =>{
+  res.status(200);
+})
+
 app.use(
-  "/graphql",
+  "/actualGraphql",
   graphqlHTTP({
     schema,
     rootValue,
