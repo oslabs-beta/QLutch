@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { request, gql } from 'graphql-request'
 import Request from './Request';
 import Response from './Response';
 import bytes from 'bytes';
@@ -11,13 +12,14 @@ const Dashboard = () => {
     const [time, setTime] = useState();
     const [size, setSize] = useState();
 
+    console.log(text);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        //get time of button click
+        // get time of button click
         const start = new Date();
         let byteSize = 0;
-       
+
 
         // requesting data from graphQL
         fetch("http://localhost:4000/graphql", {
@@ -28,8 +30,8 @@ const Dashboard = () => {
                 // "Content-Length": 2
 
             },
-            body: JSON.stringify({ query: "{ people (id: 1) {name} }" })
-            // body: JSON.stringify({ query: "{ books  {title} }" }),
+            // body: JSON.stringify({ query: "{ people (id: 1) {name} }" })
+            body: JSON.stringify({ query: "{ books {__typename title} }" }),
             // body: JSON.stringify({ query: "{ hello }" })
         })
             .then(r => {
@@ -45,6 +47,19 @@ const Dashboard = () => {
                 setQueryResult(JSON.stringify(data))
             })
 
+
+        /* REQUEST WITH GRAPHQL REQUEST */
+        // const document = gql`
+        //     query {
+        //         people(id:"1") {
+        //             __typename
+        //          name
+        //          }
+        //         }
+        //     `
+
+        // const response = await request('http://localhost:4000/graphql', document)
+        // console.log(response)
     }
 
     const handleChange = (e) => {
@@ -56,7 +71,7 @@ const Dashboard = () => {
             <h1><span className='white'>QL</span>utch</h1>
             <div className='dashboard'>
                 <Request handleSubmit={handleSubmit} handleChange={handleChange} text={text} />
-                <Response queryResult={queryResult} status={status} time={time} size={size}/>
+                <Response queryResult={queryResult} status={status} time={time} size={size} />
             </div>
         </div >
     )
