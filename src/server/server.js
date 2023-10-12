@@ -21,8 +21,8 @@ app.get("/", (req, res) => {
 });
 
 // serving graphQL & graphiql
-app.use("/graphql", qlutch("http://localhost:8080/actualGraphql"), (req,res) =>{
-  res.status(200);
+app.use("/graphql", qlutch("http://localhost:4000/actualGraphql"), (req,res) =>{
+  return res.json(res.locals.response);
 })
 
 app.use(
