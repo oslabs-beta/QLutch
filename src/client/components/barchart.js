@@ -18,7 +18,7 @@ export default function BarChart({time}) {
         data: newTime
     }]
     useEffect(() => {
-        console.log('newTime: ', newTime)
+        // console.log('newTime: ', newTime)
         if (time) {
             setI(i + 1);
             setNewTime([...newTime, time])
