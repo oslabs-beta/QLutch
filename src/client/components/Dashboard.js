@@ -17,7 +17,7 @@ const Dashboard = () => {
         //get time of button click
         const start = new Date();
         let byteSize = 0;
-       
+
 
         // requesting data from graphQL
         fetch("http://localhost:4000/graphql", {
@@ -28,20 +28,20 @@ const Dashboard = () => {
                 // "Content-Length": 2
 
             },
-            body: JSON.stringify({ query: "{ people (id: 1) {name} }" })
+            body: JSON.stringify({ query: "{ person (id: 1) {name} }" })
             // body: JSON.stringify({ query: "{ books  {title} }" }),
             // body: JSON.stringify({ query: "{ hello }" })
         })
             .then(r => {
                 setStatus(r.status);
                 // console.log(r.headers.get("Content-Length"))
-                byteSize += bytes.parse(JSON.stringify(r.headers).length);
+                // byteSize += bytes.parse(JSON.stringify(r.headers).length);
                 return r.json()
             })
             .then(data => {
-                byteSize += bytes.parse(JSON.stringify(data.data).length);
+                // byteSize += bytes.parse(JSON.stringify(data.data).length);
                 setTime((new Date()) - start);
-                setSize(bytes.format(byteSize));
+                // setSize(bytes.format(byteSize));
                 setQueryResult(JSON.stringify(data))
             })
 
@@ -56,7 +56,7 @@ const Dashboard = () => {
             <h1><span className='white'>QL</span>utch</h1>
             <div className='dashboard'>
                 <Request handleSubmit={handleSubmit} handleChange={handleChange} text={text} />
-                <Response queryResult={queryResult} status={status} time={time} size={size}/>
+                <Response queryResult={queryResult} status={status} time={time} size={size} />
             </div>
         </div >
     )
