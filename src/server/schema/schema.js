@@ -16,6 +16,7 @@ const schema = buildSchema(`
     type People {
         id: ID
         name: String!
+        mass: String
     }
 `);
 

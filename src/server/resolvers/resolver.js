@@ -1,7 +1,7 @@
 const fetch = require("node-fetch");
 const redis = require("../redis");
 
-const rootValue = {
+const resolver = {
   hello: () => {
     return "hello";
   },
@@ -19,17 +19,19 @@ const rootValue = {
     const peopleId = parent.id;
     console.log("inside resolver peopleId: ", peopleId);
 
-    const person = await redis.get(`id${parent.id}`);
+    const person = JSON.parse(await redis.get(`id${parent.id}`))
+    // JSON.parse(person);
+    console.log(typeof person);
     if (person) {
-      return { name: person };
+      return { name: person.name, mass: person.mass };
     } else {
       return new Promise((resolve, reject) => {
         fetch(`http://swapi.dev/api/people/${peopleId}`)
           .then((data) => data.json())
           .then((result) => {
-            console.log(result.name);
-            redis.set("id1", result.name);
-            resolve({ name: result.name });
+            console.log(`result from database: ${result}`);
+            redis.set("id1", JSON.stringify({name: result.name, mass: result.mass}));
+            resolve({ name: result.name, mass: result.mass });
           })
           .catch((error) => {
             reject(error);
@@ -39,4 +41,4 @@ const rootValue = {
   },
 };
 
-module.exports = rootValue;
+module.exports = resolver;

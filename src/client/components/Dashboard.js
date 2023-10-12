@@ -28,7 +28,7 @@ const Dashboard = () => {
                 // "Content-Length": 2
 
             },
-            body: JSON.stringify({ query: "{ people (id: 1) {name} }" })
+            body: JSON.stringify({ query: "{ people (id: 2) {name mass} }" })
             // body: JSON.stringify({ query: "{ books  {title} }" }),
             // body: JSON.stringify({ query: "{ hello }" })
         })

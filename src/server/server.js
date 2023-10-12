@@ -3,7 +3,7 @@ require("dotenv").config();
 const cors = require("cors");
 const { graphqlHTTP } = require("express-graphql");
 const schema = require("./schema/schema");
-const rootValue = require("./resolvers/rootValue");
+const resolver = require("./resolvers/resolver");
 const port = process.env.PORT || 4000;
 const path = require("path");
 const DIST_DIR = path.join(__dirname, "../dist");
@@ -23,7 +23,7 @@ app.use(
   "/graphql",
   graphqlHTTP({
     schema,
-    rootValue,
+    rootValue: resolver,
     graphiql: true,
   })
 );
