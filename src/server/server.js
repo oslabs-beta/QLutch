@@ -2,6 +2,7 @@ const express = require("express");
 require("dotenv").config();
 const cors = require("cors");
 const { graphqlHTTP } = require("express-graphql");
+const { GraphQLSchema, GraphQLObjectType, GraphQLString } = require('graphql');
 const schema = require("./schema/schema");
 const rootValue = require("./resolvers/rootValue");
 const port = process.env.PORT || 4000;
@@ -12,9 +13,10 @@ const redis = require("./redis");
 const qlutch = require("./qlutch")
 
 const app = express();
+app.use(express.json());
 app.use(express.static(DIST_DIR));
 app.use(cors());
-app.use(express.json());
+
 // serving html file with react app
 app.get("/", (req, res) => {
   res.sendFile(HTML_FILE);
@@ -25,12 +27,11 @@ app.use("/graphql", qlutch("http://localhost:4000/actualGraphql"), (req,res) =>{
   return res.json(res.locals.response);
 })
 
-app.use(
-  "/actualGraphql",
+app.use (
+  '/actualGraphql', 
   graphqlHTTP({
     schema,
-    rootValue,
-    graphiql: true,
+    graphiql: true
   })
 );
 
@@ -41,28 +42,3 @@ app.get("/badCacheReset", async (req, res) => {
 });
 
 app.listen(port), console.log(`Server running on ${port} `);
-
-// graphQl schema
-// const Schema = `#graphql
-//   type Query {
-//     people(id: ID!) : People
-//   }
-
-//   type People {
-//     id: ID!
-//     name: String!
-//   }
-// `;
-
-// graphQl resolvers
-// const Query = {
-//   // hello: () => "Test Success, GraphQL server is up & running !!",
-//   people: (parents, args, context) => {
-//     const peopleId = args.id;
-//     console.log('inside resolver')
-
-//     fetch(`http://swapi.dev/api/people/${peopleId}`)
-//       .then((data) => data.json())
-//       .then((result) => console.log(result));
-//   },
-// };
