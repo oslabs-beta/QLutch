@@ -20,7 +20,7 @@ const Dashboard = () => {
 
 
         // requesting data from graphQL
-        fetch("http://localhost:4000/graphql", {
+        fetch("http://localhost:4000/graphql", {2
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
