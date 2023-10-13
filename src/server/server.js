@@ -10,7 +10,7 @@ const path = require("path");
 const DIST_DIR = path.join(__dirname, "../dist");
 const HTML_FILE = path.join(DIST_DIR, "index.html");
 const redis = require("./redis");
-const qlutch = require('./qlutch');
+const qlutch = require("./qlutch")
 
 const app = express();
 app.use(express.json());
@@ -23,13 +23,16 @@ app.get("/", (req, res) => {
 });
 
 // serving graphQL & graphiql
+app.use("/graphql", qlutch("http://localhost:4000/actualGraphql"), (req,res) =>{
+  return res.json(res.locals.response);
+})
+
 app.use (
-  '/graphql', 
-  qlutch,
-  // graphqlHTTP({
-  //   schema,
-  //   graphiql: true
-  // })
+  '/actualGraphql', 
+  graphqlHTTP({
+    schema,
+    graphiql: true
+  })
 );
 
 app.get("/badCacheReset", async (req, res) => {
