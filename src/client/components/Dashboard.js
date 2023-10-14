@@ -20,7 +20,7 @@ const Dashboard = () => {
 
 
         // requesting data from graphQL
-        fetch("http://localhost:4000/graphql", {2
+        fetch("http://localhost:4000/graphql", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -28,7 +28,7 @@ const Dashboard = () => {
                 // "Content-Length": 2
 
             },
-            body: JSON.stringify({ query: "{ person (id: 1) {name} }" })
+            body: JSON.stringify({ query: "{ person (id: 1) {name height hair_color films { title } } }" })
             // body: JSON.stringify({ query: "{ books  {title} }" }),
             // body: JSON.stringify({ query: "{ hello }" })
         })
