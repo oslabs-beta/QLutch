@@ -30,8 +30,8 @@ const Dashboard = () => {
                 // "Content-Length": 2
 
             },
-            body: JSON.stringify({ query: "{ person (id: 1) {name height hair_color films { title } } }" })
-            // body: JSON.stringify({ query: "{ books  {title} }" }),
+            // body: JSON.stringify({ query: "{ person (id: 1) {name height hair_color films (id: 5) { title } } }" })
+            body: JSON.stringify({ query: "{ person (id:1)  {name height} }" }),
             // body: JSON.stringify({ query: "{ hello }" })
         })
             .then(r => {
@@ -51,8 +51,7 @@ const Dashboard = () => {
         /* REQUEST WITH GRAPHQL REQUEST */
         // const document = gql`
         //     query {
-        //         people(id:"1") {
-        //             __typename
+        //         person(id:"1") {
         //          name
         //          }
         //         }

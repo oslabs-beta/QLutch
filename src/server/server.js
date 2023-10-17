@@ -16,6 +16,7 @@ const app = express();
 app.use(express.json());
 app.use(express.static(DIST_DIR));
 app.use(cors());
+
 // serving html file with react app
 app.get("/", (req, res) => {
   res.sendFile(HTML_FILE);
