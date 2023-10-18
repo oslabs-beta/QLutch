@@ -4,6 +4,7 @@ const { request } = require("graphql-request");
 
 module.exports = function (graphQlPath) {
     return async function (req, res, next) {
+
         console.log('in QLutch')
 
         const cachedData = await redis.get(JSON.stringify(req.body.query))
