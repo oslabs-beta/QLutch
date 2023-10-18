@@ -151,63 +151,194 @@ module.exports = function (graphQlPath) {
         // console.log('typesArr: ', typesArr);
 
         // create a var to return response data
-        const dataToReturn = {};
+        const dataToReturn = {
+            data: {},
+        };
 
-        // iterate through fieldsToCache array and check each element if stored in redis
-        fieldsToCache.forEach(async (field) => {
-            // console.log('field: ', field);
-            // console.log(JSON.parse(field));
+        // function to build dataToReturn object
 
-            //check redis if key is stored and return value 
-            const cachedData = await redis.get(field)
+        // function buildDataToReturnObj(dataForObject, toReturn) {
 
-            if (cachedData) {
-                console.log("if yes");
-
-                res.locals.response = cachedData;
-
-                return next();
-
-            } else {
-                console.log("if no")
-
-                // create graphql query
-                let parsedGraphQLQuery = `query {`
-
-                let curlyBracesCount = 1;
-
-                field.split('').forEach((char) => {
-                    if (char === ')') {
-                        parsedGraphQLQuery = parsedGraphQLQuery.concat(char + '{')
-                        curlyBracesCount++;
-                    } else parsedGraphQLQuery = parsedGraphQLQuery.concat(char)
-                })
-
-                parsedGraphQLQuery = parsedGraphQLQuery.concat('}'.repeat(curlyBracesCount));
-
-                // request new query to graphQL
-                const document = gql`${parsedGraphQLQuery}`
-
-                // console.log('parsedGraphQLQuery: ', parsedGraphQLQuery)
-                // console.log('document: ', document)
-
-                let data = await request(`${graphQlPath}`, document)
-                console.log('data: ', data)
-
-                //BUILD RESPONSE DATA OBJECT
-                // res.locals.response = data;
-                // store data to redis
-                // console.log('field: ', field);
-                redis.set(field, JSON.stringify(data))
-                return next()
-
-            }
+        //     // create a var to store root value
+        //     const rootObject = {};
 
 
-        });
+        //     console.log('dataForObject: ', dataForObject);
+        //     // iterate through input object and store root object 
+        //     for (const key in dataForObject) {
+        //         console.log('key: ', key, dataForObject[key])
+        //         dataToReturn.data = rootObject
+        //         rootObject[key] = dataForObject[key]
+        //         dataToReturn.data = rootObject
+        //     }
+
+
+        //     console.log('rootObject: ', rootObject);
+        //     // console.log('dataToReturn: ', dataToReturn.data = rootObject)
+        //     // console.log('dataToReturn: ', dataToReturn.data[rootObject])
+
+        // }
+
+
+        function deepMerge(...objects) {
+            console.log('objects: ', objects)
+            return objects.reduce((merged, obj) => {
+                for (const key in obj) {
+                    if (obj.hasOwnProperty(key) && typeof obj[key] === 'object') {
+                        if (!merged[key]) {
+                            merged[key] = {};
+                        }
+                        merged[key] = deepMerge(merged[key], obj[key]);
+                    } else {
+                        merged[key] = obj[key];
+                    }
+                }
+                return merged;
+            }, {});
+        }
+
+        // // creating data array to pass to deepmerge function
+        // const cachedDataArr = [];
+
+        // // iterate through fieldsToCache array and check each element if stored in redis
+        // fieldsToCache.forEach(async (field) => {
+        //     // console.log('field: ', field);
+        //     // console.log(JSON.parse(field));
+
+        //     //check redis if key is stored and return value 
+        //     const cachedData = JSON.parse(await redis.get(field))
+
+
+        //     if (cachedData) {
+        //         // console.log('cachedData: ', cachedData)
+        //         cachedDataArr.push(cachedData)
+        //         // console.log('chachedDataArr: ', cachedDataArr)
+        //         console.log("if yes");
+        //         // console.log('cachedData: ', cachedData)
+
+        //         // dataToReturn.data = buildDataToReturnObj(cachedData, dataToReturn);
+        //         // dataToReturn.data = deepMerge(cachedDataArr);
+
+        //         // dataToReturn.data = cachedData
+        //         console.log('dataToReturn: ', dataToReturn)
+
+        //         // res.locals.response = cachedData;
+
+        //         // return next();
+
+        //     } else {
+        //         console.log("if no")
+
+        //         // create graphql query
+        //         let parsedGraphQLQuery = `query {`
+
+        //         let curlyBracesCount = 1;
+
+        //         field.split('').forEach((char) => {
+        //             if (char === ')') {
+        //                 parsedGraphQLQuery = parsedGraphQLQuery.concat(char + '{')
+        //                 curlyBracesCount++;
+        //             } else parsedGraphQLQuery = parsedGraphQLQuery.concat(char)
+        //         })
+
+        //         parsedGraphQLQuery = parsedGraphQLQuery.concat('}'.repeat(curlyBracesCount));
+
+        //         // request new query to graphQL
+        //         const document = gql`${parsedGraphQLQuery}`
+
+        //         // console.log('parsedGraphQLQuery: ', parsedGraphQLQuery)
+        //         // console.log('document: ', document)
+
+        //         let data = await request(`${graphQlPath}`, document)
+        //         console.log('data: ', data)
+
+        //         //BUILD RESPONSE DATA OBJECT
+        //         res.locals.response = data;
+        //         // store data to redis
+        //         // console.log('field: ', field);
+        //         redis.set(field, JSON.stringify(data))
+        //         // return next()
+
+        //     }
 
 
 
+
+        //     return next();
+        // });
+
+        async function createResponse() {
+            // creating data array to pass to deepmerge function
+            const cachedDataArr = [];
+
+            // iterate through fieldsToCache array and check each element if stored in redis
+
+               fieldsToCache.forEach(async (field) => {
+                   // console.log('field: ', field);
+                   // console.log(JSON.parse(field));
+                   
+                   //check redis if key is stored and return value 
+                   const cachedData = JSON.parse(await redis.get(field))
+                   
+                   
+                   if (cachedData) {
+                       // console.log('cachedData: ', cachedData)
+                       cachedDataArr.push(cachedData)
+                       // console.log('chachedDataArr: ', cachedDataArr)
+                       console.log("if yes");
+                       console.log('cachedData: ', cachedData)
+                       
+                       // dataToReturn.data = buildDataToReturnObj(cachedData, dataToReturn);
+                       // dataToReturn.data = deepMerge(cachedDataArr);
+                       
+                       // dataToReturn.data = cachedData
+                       // console.log('dataToReturn: ', dataToReturn)
+                       
+                       // res.locals.response = cachedData;
+                       
+                       // return next();
+                       
+                    } else {
+                        console.log("if no")
+                        
+                        // create graphql query
+                        let parsedGraphQLQuery = `query {`
+                        
+                        let curlyBracesCount = 1;
+
+                        field.split('').forEach((char) => {
+                        if (char === ')') {
+                            parsedGraphQLQuery = parsedGraphQLQuery.concat(char + '{')
+                            curlyBracesCount++;
+                        } else parsedGraphQLQuery = parsedGraphQLQuery.concat(char)
+                    })
+                    
+                    parsedGraphQLQuery = parsedGraphQLQuery.concat('}'.repeat(curlyBracesCount));
+                    
+                    // request new query to graphQL
+                    const document = gql`${parsedGraphQLQuery}`
+                    
+                    // console.log('parsedGraphQLQuery: ', parsedGraphQLQuery)
+                    // console.log('document: ', document)
+                    
+                    let data = await request(`${graphQlPath}`, document)
+                    console.log('data: ', data)
+                    
+                    //BUILD RESPONSE DATA OBJECT
+                    res.locals.response = data;
+                    // store data to redis
+                    // console.log('field: ', field);
+                    redis.set(field, JSON.stringify(data))
+                    // return next()
+                    
+                }
+            });
+            console.log('cachedDataArr: ', cachedDataArr)
+            dataToReturn.data = deepMerge(cachedDataArr);
+            console.log('dataToReturn: ', dataToReturn.data)
+            return next();
+        }
+        const response = await createResponse();
 
 
 
@@ -229,5 +360,6 @@ module.exports = function (graphQlPath) {
         //     redis.set(JSON.stringify(req.body.query), JSON.stringify(data))
         //     return next()
         // }
+
     }
 }
