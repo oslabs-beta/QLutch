@@ -1,4 +1,3 @@
-const fetch = require("node-fetch");
 const redis = require("./redis");
 const { request, gql } = require("graphql-request");
 const {
