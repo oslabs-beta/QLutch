@@ -67,13 +67,12 @@ const Dashboard = () => {
 
     return (
         <div>
-            <h1><span className='white'>QL</span>utch</h1>
+            <h1>
+                <span className='white'>QL</span>utch
+            </h1>
             <div className='dashboard'>
-                <Request handleSubmit={handleSubmit} handleChange={handleChange} text={text} />
-                <Response queryResult={queryResult} status={status} time={time} size={size} />
+                <Request />
             </div>
-        </div >
+        </div>
     )
-}
-
-export default Dashboard;
+};
