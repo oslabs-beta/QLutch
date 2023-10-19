@@ -30,20 +30,22 @@ const Dashboard = () => {
                 // "Content-Length": 2
 
             },
-            body: JSON.stringify({ query: "{ person (id: 1) {name height hair_color films (id: 5) { title } } }" })
-            // body: JSON.stringify({ query: "{ person (id:1)  {name height} }" }),
+            body: JSON.stringify({ query: "{ person (id: 1) {name  hair_color films (id: 5) { title } } }" })
+            // body: JSON.stringify({ query: "{ person (id:1)  { name hair_color} }" }),
             // body: JSON.stringify({ query: "{ hello }" })
         })
             .then(r => {
+                console.log('r: ', r)
                 setStatus(r.status);
                 // console.log(r.headers.get("Content-Length"))
-                // byteSize += bytes.parse(JSON.stringify(r.headers).length);
+                byteSize += bytes.parse(JSON.stringify(r.headers).length);
                 return r.json()
             })
             .then(data => {
-                // byteSize += bytes.parse(JSON.stringify(data.data).length);
+                console.log('data: ', data)
+                byteSize += bytes.parse(JSON.stringify(data.data).length);
                 setTime((new Date()) - start);
-                // setSize(bytes.format(byteSize));
+                setSize(bytes.format(byteSize));
                 setQueryResult(JSON.stringify(data))
             })
 

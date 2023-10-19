@@ -80,7 +80,7 @@ module.exports = function (graphQlPath) {
         // create a var to store main field with args if any
         let rootField;
         // create a var to store an object of arrays 
-        const fieldsToCache = [];
+        const keysToCache = [];
 
         // visitor object for arguments is called from field method in main visitor object with the input of current field node
         const argVisitor = {
@@ -138,64 +138,153 @@ module.exports = function (graphQlPath) {
                     }
                 } // else add each field to root value and build out object
                 else {
-                    fieldsToCache.push(rootField.concat(node.name.value))
+                    keysToCache.push(rootField.concat(node.name.value))
                 }
             }
         }
 
         const ast = visit(parsedQuery, visitor);
         console.log('operation: ', operation);
-        console.log('fieldsToCache: ', fieldsToCache)
+        console.log('keysToCache: ', keysToCache)
         // console.log('fields: ', fields);
         // console.log('types: ', types);
         // console.log('typesArr: ', typesArr);
 
-        // create a var to return response data
-        const dataToReturn = {
-            data: {},
-        };
-
-        // function to build dataToReturn object
-
-        // function buildDataToReturnObj(dataForObject, toReturn) {
-
-        //     // create a var to store root value
-        //     const rootObject = {};
 
 
-        //     console.log('dataForObject: ', dataForObject);
-        //     // iterate through input object and store root object 
-        //     for (const key in dataForObject) {
-        //         console.log('key: ', key, dataForObject[key])
-        //         dataToReturn.data = rootObject
-        //         rootObject[key] = dataForObject[key]
-        //         dataToReturn.data = rootObject
-        //     }
-
-
-        //     console.log('rootObject: ', rootObject);
-        //     // console.log('dataToReturn: ', dataToReturn.data = rootObject)
-        //     // console.log('dataToReturn: ', dataToReturn.data[rootObject])
-
-        // }
 
 
         function deepMerge(...objects) {
-            console.log('objects: ', objects)
             return objects.reduce((merged, obj) => {
                 for (const key in obj) {
-                    if (obj.hasOwnProperty(key) && typeof obj[key] === 'object') {
-                        if (!merged[key]) {
-                            merged[key] = {};
+                    if (obj.hasOwnProperty(key)) {
+                        if (typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+                            // If the property is an object, recursively merge it
+                            merged[key] = deepMerge(merged[key] || {}, obj[key]);
+                        } else {
+                            // Otherwise, assign the value
+                            merged[key] = obj[key];
                         }
-                        merged[key] = deepMerge(merged[key], obj[key]);
-                    } else {
-                        merged[key] = obj[key];
                     }
                 }
                 return merged;
             }, {});
         }
+
+
+
+        async function getCache(key) {
+            try {
+                //check redis if key is stored and return value 
+                const cachedData = JSON.parse(await redis.get(key))
+                console.log('cachedData: ', cachedData)
+                return cachedData;
+
+            }
+
+            catch (err) {
+                console.log('err: ', err)
+            }
+        }
+
+
+        const keysToRequestArr = [];
+        const responseToMergeArr = [];
+
+        async function createResponse() {
+            try {
+                const checkDataIsCachedArr = keysToCache.map((key) => getCache(key))
+                const response = await Promise.all(checkDataIsCachedArr);
+                console.log('response: ', response)
+                // console.log('checkDataIsCachedArr: ', checkDataIsCachedArr)
+
+                // iterates through response array and checks for values to be push to responseToMerge or keyToRequest
+                for (let i = 0; i < response.length; i++) {
+
+                    if (response[i] === null) {
+                        keysToRequestArr.push(keysToCache[i]);
+                    } else {
+                        responseToMergeArr.push(response[i])
+                    }
+                }
+
+                console.log('keysToRequestArr: ', keysToRequestArr)
+                console.log('responseToMergeArr: ', responseToMergeArr)
+
+                // get response writes a query and request each field from graphql
+                async function getResponse(key) {
+                    // keysToRequestArr.forEach(async (key) => {
+
+                    // create graphql query
+                    let parsedGraphQLQuery = `query {`
+                    let curlyBracesCount = 1;
+                    
+
+                    key.split('').forEach((char) => {
+                        if (char === ')') {
+                            parsedGraphQLQuery = parsedGraphQLQuery.concat(char + '{')
+                            curlyBracesCount++;
+                        } else parsedGraphQLQuery = parsedGraphQLQuery.concat(char)
+                    })
+
+                    parsedGraphQLQuery = parsedGraphQLQuery.concat('}'.repeat(curlyBracesCount));
+                    // console.log('parsedGraphQLQuery: ', parsedGraphQLQuery)
+
+
+                    // // request new query to graphQL
+                    const document = gql`${parsedGraphQLQuery}`
+
+                    let repsonse = await request(`${graphQlPath}`, document)
+                    console.log('response: ', repsonse)
+
+                    // WHERE TO SET REDIS
+                    redis.set(key, JSON.stringify(repsonse))
+
+                    return repsonse;
+
+                }
+
+                // request response from gql and calls deep merge to return merged object to sendResponse
+                async function GGQLResponse() {
+                    const mergeArr = keysToRequestArr.map(async (key) => await getResponse(key))
+                    const toBeMerged = await Promise.all(mergeArr);
+
+                    // console.log('toBeMerged: ', toBeMerged)
+                    // console.log('deepMerge: ', deepMerge(...toBeMerged))
+
+                    //STILL DOESNT WORK
+                    console.log('toBeMerged: ', toBeMerged)
+                    console.log('responseToMergeArr: ', responseToMergeArr)
+                    sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
+                    // sendResponse(deepMerge(...toBeMerged)); 
+                    // sendResponse(deepMerge( ...responseToMergeArr));
+
+                }
+                GGQLResponse()
+
+
+
+                function sendResponse(resObj) {
+
+                    // create a var to return response data
+                    const dataToReturn = {
+                        data: {},
+                    };
+                    dataToReturn.data = resObj;
+
+                    console.log('dataToReturn: ', JSON.stringify(dataToReturn))
+                    res.locals.response = dataToReturn;
+                    console.log('res.locals.resp: ', res.locals.response)
+                    // store data to redis
+                    return next();
+                }
+
+            }
+            catch (err) {
+                console.log('err: ', err)
+            }
+        }
+        createResponse()
 
         // // creating data array to pass to deepmerge function
         // const cachedDataArr = [];
@@ -264,81 +353,107 @@ module.exports = function (graphQlPath) {
 
 
 
+
+
+
+
+
+
         //     return next();
         // });
 
-        async function createResponse() {
-            // creating data array to pass to deepmerge function
-            const cachedDataArr = [];
+        // async function createResponse() {
+        //     // creating data array to pass to deepmerge function
+        //     const cachedDataArr = [];
 
-            // iterate through fieldsToCache array and check each element if stored in redis
+        //     // iterate through fieldsToCache array and check each element if stored in redis
 
-               fieldsToCache.forEach(async (field) => {
-                   // console.log('field: ', field);
-                   // console.log(JSON.parse(field));
-                   
-                   //check redis if key is stored and return value 
-                   const cachedData = JSON.parse(await redis.get(field))
-                   
-                   
-                   if (cachedData) {
-                       // console.log('cachedData: ', cachedData)
-                       cachedDataArr.push(cachedData)
-                       // console.log('chachedDataArr: ', cachedDataArr)
-                       console.log("if yes");
-                       console.log('cachedData: ', cachedData)
-                       
-                       // dataToReturn.data = buildDataToReturnObj(cachedData, dataToReturn);
-                       // dataToReturn.data = deepMerge(cachedDataArr);
-                       
-                       // dataToReturn.data = cachedData
-                       // console.log('dataToReturn: ', dataToReturn)
-                       
-                       // res.locals.response = cachedData;
-                       
-                       // return next();
-                       
-                    } else {
-                        console.log("if no")
-                        
-                        // create graphql query
-                        let parsedGraphQLQuery = `query {`
-                        
-                        let curlyBracesCount = 1;
+        //        fieldsToCache.forEach(async (field) => {
+        //            // console.log('field: ', field);
+        //            // console.log(JSON.parse(field));
 
-                        field.split('').forEach((char) => {
-                        if (char === ')') {
-                            parsedGraphQLQuery = parsedGraphQLQuery.concat(char + '{')
-                            curlyBracesCount++;
-                        } else parsedGraphQLQuery = parsedGraphQLQuery.concat(char)
-                    })
-                    
-                    parsedGraphQLQuery = parsedGraphQLQuery.concat('}'.repeat(curlyBracesCount));
-                    
-                    // request new query to graphQL
-                    const document = gql`${parsedGraphQLQuery}`
-                    
-                    // console.log('parsedGraphQLQuery: ', parsedGraphQLQuery)
-                    // console.log('document: ', document)
-                    
-                    let data = await request(`${graphQlPath}`, document)
-                    console.log('data: ', data)
-                    
-                    //BUILD RESPONSE DATA OBJECT
-                    res.locals.response = data;
-                    // store data to redis
-                    // console.log('field: ', field);
-                    redis.set(field, JSON.stringify(data))
-                    // return next()
-                    
-                }
-            });
-            console.log('cachedDataArr: ', cachedDataArr)
-            dataToReturn.data = deepMerge(cachedDataArr);
-            console.log('dataToReturn: ', dataToReturn.data)
-            return next();
-        }
-        const response = await createResponse();
+        //            //check redis if key is stored and return value 
+        //            const cachedData = JSON.parse(await redis.get(field))
+
+
+        //            if (cachedData) {
+        //                // console.log('cachedData: ', cachedData)
+        //                cachedDataArr.push(cachedData)
+        //                console.log('chachedDataArr: ', cachedDataArr)
+        //                console.log("if yes");
+        //                console.log('cachedData: ', cachedData)
+
+        //                // dataToReturn.data = buildDataToReturnObj(cachedData, dataToReturn);
+        //                // dataToReturn.data = deepMerge(cachedDataArr);
+
+        //                // dataToReturn.data = cachedData
+        //                // console.log('dataToReturn: ', dataToReturn)
+
+        //                // res.locals.response = cachedData;
+
+        //                // return next();
+
+        //             } else {
+        //                 console.log("if no")
+
+        //                 // create graphql query
+        //                 let parsedGraphQLQuery = `query {`
+
+        //                 let curlyBracesCount = 1;
+
+        //                 field.split('').forEach((char) => {
+        //                 if (char === ')') {
+        //                     parsedGraphQLQuery = parsedGraphQLQuery.concat(char + '{')
+        //                     curlyBracesCount++;
+        //                 } else parsedGraphQLQuery = parsedGraphQLQuery.concat(char)
+        //             })
+
+        //             parsedGraphQLQuery = parsedGraphQLQuery.concat('}'.repeat(curlyBracesCount));
+
+        //             // request new query to graphQL
+        //             const document = gql`${parsedGraphQLQuery}`
+
+        //             // console.log('parsedGraphQLQuery: ', parsedGraphQLQuery)
+        //             // console.log('document: ', document)
+
+        //             let data = await request(`${graphQlPath}`, document)
+        //             console.log('data: ', data)
+
+        //             //BUILD RESPONSE DATA OBJECT
+        //             res.locals.response = data;
+        //             // store data to redis
+        //             // console.log('field: ', field);
+        //             redis.set(field, JSON.stringify(data))
+        //             // return next()
+
+        //         }
+        //     });
+        //     console.log('cachedDataArr: ', cachedDataArr)
+        //     dataToReturn.data = deepMerge(cachedDataArr);
+        //     console.log('dataToReturn: ', dataToReturn.data)
+        //     return next();
+        // }
+        // createResponse()
+
+        // async function awaitAndUseRedisResponses() {
+        //     try {
+        //       const responses = await Promise.all(cachedDataArr);
+        //       // The `responses` array now contains the results of all Redis operations
+        //       // Use the responses as needed
+        //       console.log('response: ', response)
+        //     } catch (error) {
+        //       // Handle any errors that may occur during the Redis operations
+        //     }
+        //   }
+        //   awaitAndUseRedisResponses()
+
+
+
+
+
+
+
+
 
 
 
