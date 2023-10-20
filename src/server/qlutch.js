@@ -9,6 +9,7 @@ module.exports = function (graphQlPath) {
     return async function (req, res, next) {
         console.log('---- in QLutch ---- ')
 
+        console.log('req.body: ', req.body)
         const parsedQuery = parse(req.body.query);
 
         //USE INTROSPECTION TO IDENTIFY TYPES
@@ -218,7 +219,7 @@ module.exports = function (graphQlPath) {
                     // create graphql query
                     let parsedGraphQLQuery = `query {`
                     let curlyBracesCount = 1;
-                    
+
 
                     key.split('').forEach((char) => {
                         if (char === ')') {

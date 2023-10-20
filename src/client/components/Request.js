@@ -13,8 +13,10 @@ export default function Request() {
 
         // Get time of button click
         const start = new Date();
+        const query = document.getElementById("queryInput").value
         let byteSize = 0;
-
+        console.log(query)
+        // console.warn(xhr.responseText);
         // Requesting data from GraphQL
         fetch("http://localhost:4000/graphql", {
             method: "POST",
@@ -22,15 +24,21 @@ export default function Request() {
                 "Content-Type": "application/json",
                 Accept: "application/json",
             },
-            body: JSON.stringify({ query: `${document.getElementById("queryInput").value}` })
+
+            // body: JSON.stringify(document.getElementById("queryInput").value)
+            body: JSON.stringify({ query })
+            // body: JSON.stringify({ query: "{ person (id: 1) {name height hair_color films (id: 5) { title } } }" })
         })
             .then((response) => {
                 setStatus(response.status);
+                byteSize += bytes.parse(JSON.stringify(response.headers).length);
                 return response.json()
             })
             .then((data) => {
+                byteSize += bytes.parse(JSON.stringify(data.data).length);
                 setTime((new Date()) - start);
-                setQueryResult(data)
+                setSize(bytes.format(byteSize));
+                setQueryResult(JSON.stringify(data));
             });
     }
 
@@ -70,8 +78,8 @@ export default function Request() {
                     </div>
                 </div>
             </div>
-            <Response 
-                queryResult={queryResult} 
+            <Response
+                queryResult={queryResult}
                 status={status}
                 time={time}
                 size={size}
