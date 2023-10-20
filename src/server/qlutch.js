@@ -19,10 +19,26 @@ module.exports = function (graphQlPath) {
 
             let data = await request(`${graphQlPath}`, req.body.query)
 
-            res.locals.response = data;
+        res.locals.response = data;
+        redis.set(field, JSON.stringify(data));
+      }
+    };
 
-            redis.set(JSON.stringify(req.body.query), JSON.stringify(data))
-            return next()
-        }
-    }
-}
+    const processFields = async () => {
+      for (const field of fieldsToCache) {
+        await processField(field);
+      }
+      // After all fields have been processed, call next()
+      next();
+    };
+
+    // Call the function to start processing fields
+    await processFields();
+
+    // function orderOfExecution() {
+    //   return next();
+    // }
+    // orderOfExecution();
+    deepMerge(cachedDataArr);
+  };
+};
