@@ -2,3 +2,4 @@ node_modules
 package-lock.json
 .npm
 .DS-Store
+node_modules
