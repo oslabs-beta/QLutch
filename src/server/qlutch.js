@@ -98,14 +98,12 @@ module.exports = function (graphQlPath) {
       Field: (node) => {
         // create a var to store an current field name
         const currentField = node.name.value;
-
         // check if field is in typesArr
         if (typesArr.includes(currentField)) {
           // if field is first element in typesArr
           if (currentField === typesArr[0]) {
             // reassign root var with root field of first element in typesArr with arguments from visiotr function if any
             rootField = currentField;
-
             // check if there are args on current node and if so call argument visitor method
             if (node.arguments.length) {
               const args = visit(node, argVisitor);
@@ -170,7 +168,6 @@ module.exports = function (graphQlPath) {
       try {
         const checkDataIsCachedArr = keysToCache.map((key) => getCache(key));
         const response = await Promise.all(checkDataIsCachedArr);
-
         // iterates through response array and checks for values to be push to responseToMerge or keyToRequest
         for (let i = 0; i < response.length; i++) {
           if (response[i] === null) {
@@ -220,7 +217,6 @@ module.exports = function (graphQlPath) {
           const toBeMerged = await Promise.all(mergeArr);
           sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
         }
-        GGQLResponse();
 
         function sendResponse(resObj) {
           // create a var to return response data
@@ -233,6 +229,7 @@ module.exports = function (graphQlPath) {
 
           return next();
         }
+        GGQLResponse();
       } catch (err) {
         console.log("err: ", err);
       }
