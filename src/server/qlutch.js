@@ -1,14 +1,7 @@
-const fetch = require("node-fetch");
 const redis = require("./redis");
 const { request, gql } = require("graphql-request");
-const {
-  visit,
-  __EnumValue,
-  __Directive,
-  __DirectiveLocation,
-} = require("graphql");
+const { visit } = require("graphql");
 const { parse } = require("graphql/language");
-const schema = require("./schema/schema");
 
 module.exports = function (graphQlPath) {
   return async function (req, res, next) {
@@ -16,10 +9,12 @@ module.exports = function (graphQlPath) {
 
     //parse query from frontend
     const parsedQuery = parse(req.body.query);
-    
+
     //USE INTROSPECTION TO IDENTIFY TYPES
+
     // array to store all query types
     const typesArr = [];
+
     // excluded typenames that are automatically returned by introspection
     const excludedTypeNames = [
       "Query",
@@ -34,6 +29,7 @@ module.exports = function (graphQlPath) {
       "__Directive",
       "__DirectiveLocation",
     ];
+
     //using introspection query
     let data = await request(
       `${graphQlPath}`,
@@ -54,6 +50,7 @@ module.exports = function (graphQlPath) {
               }
           }`
     );
+
     // PARSING THROUGH QUERIES WITH ARGS AND STORING THEM IN TYPESARR
     data.__schema.types[0].fields.forEach((type) => {
       typesArr.push(type.name);
@@ -79,12 +76,10 @@ module.exports = function (graphQlPath) {
 
     // Variables to store data from query received from visitor function
     let operation = "";
-    //looks like these aren't being used - do we need?
-    const types = [];
-    const fields = [];
 
     // create a var to store main field with args if any
     let rootField;
+
     // create a var to store an object of arrays
     const keysToCache = [];
 
@@ -94,6 +89,7 @@ module.exports = function (graphQlPath) {
         return `(${node.name.value}:${node.value.value})`;
       },
     };
+
     // main visitor object that builds out field array
     const visitor = {
       OperationDefinition: (node) => {
@@ -137,7 +133,7 @@ module.exports = function (graphQlPath) {
       },
     };
 
-    const ast = visit(parsedQuery, visitor);
+    visit(parsedQuery, visitor);
 
     function deepMerge(...objects) {
       return objects.reduce((merged, obj) => {
@@ -167,6 +163,7 @@ module.exports = function (graphQlPath) {
     }
 
     const keysToRequestArr = [];
+
     const responseToMergeArr = [];
 
     async function createResponse() {
