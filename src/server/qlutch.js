@@ -2,13 +2,16 @@ const redis = require("./redis");
 const { request, gql } = require("graphql-request");
 const { visit } = require("graphql");
 const { parse } = require("graphql/language");
+const { Person, Film } = require("./database");
 
 module.exports = function (graphQlPath) {
   return async function (req, res, next) {
     console.log("---- in QLutch ---- ");
 
     //parse query from frontend
+    console.log("req.body.query", req.body.query);
     const parsedQuery = parse(req.body.query);
+    console.log("parsed query", parsedQuery);
 
     //USE INTROSPECTION TO IDENTIFY TYPES
 

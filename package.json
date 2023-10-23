@@ -20,6 +20,7 @@
     "express-graphql": "^0.12.0",
     "graphql": "^15.8.0",
     "graphql-request": "^6.1.0",
+    "mongoose": "^7.6.3",
     "node-fetch": "^2.7.0",
     "react": "^18.2.0",
     "react-apexcharts": "^1.4.1",
