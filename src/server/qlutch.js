@@ -9,9 +9,7 @@ module.exports = function (graphQlPath) {
     console.log("---- in QLutch ---- ");
 
     //parse query from frontend
-    console.log("req.body.query", req.body.query);
     const parsedQuery = parse(req.body.query);
-    console.log("parsed query", parsedQuery);
 
     //USE INTROSPECTION TO IDENTIFY TYPES
 
@@ -204,12 +202,11 @@ module.exports = function (graphQlPath) {
             ${parsedGraphQLQuery}
           `;
 
-          let repsonse = await request(`${graphQlPath}`, document);
-
+          let response = await request(`${graphQlPath}`, document);
           // WHERE TO SET REDIS
-          redis.set(key, JSON.stringify(repsonse));
+          redis.set(key, JSON.stringify(response));
 
-          return repsonse;
+          return response;
         }
 
         // request response from gql and calls deep merge to return merged object to sendResponse
@@ -221,15 +218,27 @@ module.exports = function (graphQlPath) {
           sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
         }
 
-        function sendResponse(resObj) {
+        async function sendResponse(resObj) {
           // create a var to return response data
           const dataToReturn = {
             data: {},
           };
           dataToReturn.data = resObj;
 
+          //if data check is empty array, that means the person we're querying for does not exist in the database yet
+          const dataCheck = await Person.find({
+            name: dataToReturn.data.person.name,
+          });
+          if (dataCheck.length === 0) {
+            //store person data in the database
+            await Person.create({
+              name: dataToReturn.data.person.name,
+              height: dataToReturn.data.person.height,
+              hair_color: dataToReturn.data.person.hair_color,
+              films: dataToReturn.data.person.films,
+            });
+          }
           res.locals.response = dataToReturn;
-
           return next();
         }
         GGQLResponse();

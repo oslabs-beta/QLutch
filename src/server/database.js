@@ -20,13 +20,14 @@ const personSchema = new Schema({
   name: { type: String, required: true },
   height: Number,
   hair_color: String,
-  films: {
-    title: String,
-    id: {
-      type: Schema.Types.ObjectId,
-      ref: "film",
-    },
-  },
+  films: Array
+  // films: {
+  //   title: String,
+  //   id: {
+  //     type: Schema.Types.ObjectId,
+  //     ref: "film",
+  //   },
+  // },
 });
 
 const Person = mongoose.model("person", personSchema);
