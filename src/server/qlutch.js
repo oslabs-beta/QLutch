@@ -181,7 +181,7 @@ module.exports = function (graphQlPath) {
         // get response writes a query and request each field from graphql
         async function getResponse(key) {
           // keysToRequestArr.forEach(async (key) => {
-
+          // console.log("key", key)
           // create graphql query
           let parsedGraphQLQuery = `query {`;
           let curlyBracesCount = 1;
@@ -213,6 +213,7 @@ module.exports = function (graphQlPath) {
         async function GGQLResponse() {
           const mergeArr = keysToRequestArr.map(
             async (key) => await getResponse(key)
+            
           );
           const toBeMerged = await Promise.all(mergeArr);
           sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
@@ -232,6 +233,7 @@ module.exports = function (graphQlPath) {
           if (dataCheck.length === 0) {
             //store person data in the database
             await Person.create({
+              // id: 1,
               name: dataToReturn.data.person.name,
               height: dataToReturn.data.person.height,
               hair_color: dataToReturn.data.person.hair_color,

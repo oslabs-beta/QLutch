@@ -17,17 +17,11 @@ mongoose
 const Schema = mongoose.Schema;
 
 const personSchema = new Schema({
+  id: Number,
   name: { type: String, required: true },
   height: Number,
   hair_color: String,
   films: Array
-  // films: {
-  //   title: String,
-  //   id: {
-  //     type: Schema.Types.ObjectId,
-  //     ref: "film",
-  //   },
-  // },
 });
 
 const Person = mongoose.model("person", personSchema);
