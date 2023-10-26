@@ -24,7 +24,7 @@ app.get("/", (req, res) => {
 
 // serving graphQL & graphiql
 app.use("/graphql", qlutch("http://localhost:4000/actualGraphql"), (req,res) =>{
-  console.log("response from server file: ", res.locals.response);
+  // console.log("response from server file: ", res.locals.response);
   return res.json(res.locals.response);
 })
 

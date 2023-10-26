@@ -7,7 +7,7 @@ const { Person, Film } = require("./database");
 module.exports = function (graphQlPath) {
   return async function (req, res, next) {
     console.log("---- in QLutch ---- ");
-    console.log(req.body.query);
+    // console.log(req.body.query);
     //parse query from frontend
     const parsedQuery = parse(req.body.query);
     //USE INTROSPECTION TO IDENTIFY TYPES
@@ -52,7 +52,7 @@ module.exports = function (graphQlPath) {
     );
     // PARSING THROUGH QUERIES WITH ARGS AND STORING THEM IN TYPESARR
     data.__schema.types[0].fields.forEach((type) => {
-        typesArr.push(type.name);
+      typesArr.push(type.name);
     });
 
     // PARSING THROUGH EACH FIELD TO CHECK TYPEOF EXIST TO FIND TYPES INSIDE NESTED QUERY
@@ -66,12 +66,12 @@ module.exports = function (graphQlPath) {
             field.type.ofType &&
             typeof field.type.ofType.name === "string" &&
             typesArr.includes(field.type.ofType.name.toLowerCase())
-            ) {
-              typesArr.push(field.name);
-            }
-          });
-        }
-      });
+          ) {
+            typesArr.push(field.name);
+          }
+        });
+      }
+    });
 
     // Variables to store data from query received from visitor function
     let operation = "";
@@ -97,45 +97,55 @@ module.exports = function (graphQlPath) {
       Field: (node) => {
         // create a var to store an current field name
         const currentField = node.name.value;
+        console.log(currentField, typesArr);
         // check if field is in typesArr
         if (typesArr.includes(currentField)) {
-          // if field is first element in typesArr
-          if (currentField === typesArr[0]) {
-            
-            // reassign root var with root field of first element in typesArr with arguments from visiotr function if any
-            rootField = currentField;
-            // check if there are args on current node and if so call argument visitor method
-            if (node.arguments.length) {
-              const args = visit(node, argVisitor);
+          console.log(typesArr.includes(currentField));
+          // for (let i = 0; i < typesArr.length; i++) {
+          //   console.log(typesArr[i]);
+          //   rootField = currentField
+          // }
+            // if field is first element in typesArr
+            if (currentField === typesArr[0]) {
+              // reassign root var with root field of first element in typesArr with arguments from visiotr function if any
+              rootField = currentField;
+              // console.log(rootField);
+              // check if there are args on current node and if so call argument visitor method
+              if (node.arguments.length) {
+                // console.log(node.arguments);
+                const args = visit(node, argVisitor);
+                // add to main root
+                rootField = rootField.concat(args.arguments[0]);
+                // console.log(rootField);
+              }
+            }
+            // else if (currentField === typesArr[1]) {
+            //   rootField = currentField;
+            //   // check if there are args on current node and if so call argument visitor method
+            //   if (node.arguments.length) {
+            //     const args = visit(node, argVisitor);
+            //     // add to main root
+            //     rootField = rootField.concat(args.arguments[0]);
+            //   }
+            // }
+            // NOT DRY - CHECKING FOR ARGS TWICE
+            // else re-assign currentType to current type
+            // check for args
+            else {
+              let currentType = node.name.value;
+              // console.log(currentType);
+              if (node.arguments.length) {
+                const args = visit(node, argVisitor);
+                // add to currentType
+                currentType = currentType.concat(args.arguments[0]);
+              }
               // add to main root
-              rootField = rootField.concat(args.arguments[0]);
+              rootField = rootField.concat(currentType);
             }
-          }
-          else if (currentField === typesArr[1]) {
-            rootField = currentField;
-            // check if there are args on current node and if so call argument visitor method
-            if (node.arguments.length) {
-              const args = visit(node, argVisitor);
-              // add to main root
-              rootField = rootField.concat(args.arguments[0]);
-            }
-          }
-          // NOT DRY - CHECKING FOR ARGS TWICE
-          // else re-assign currentType to current type
-          // check for args
-          else {
-            let currentType = node.name.value;
-            if (node.arguments.length) {
-              const args = visit(node, argVisitor);
-              // add to currentType
-              currentType = currentType.concat(args.arguments[0]);
-            }
-            // add to main root
-            rootField = rootField.concat(currentType);
-          }
         } // else add each field to root value and build out object
         else {
           keysToCache.push(rootField.concat(node.name.value));
+          console.log(keysToCache);
         }
       },
     };
@@ -220,7 +230,6 @@ module.exports = function (graphQlPath) {
         async function GGQLResponse() {
           const mergeArr = keysToRequestArr.map(
             async (key) => await getResponse(key)
-            
           );
           const toBeMerged = await Promise.all(mergeArr);
           sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
