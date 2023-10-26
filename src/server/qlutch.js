@@ -7,10 +7,9 @@ const { Person, Film } = require("./database");
 module.exports = function (graphQlPath) {
   return async function (req, res, next) {
     console.log("---- in QLutch ---- ");
-
+    console.log(req.body.query);
     //parse query from frontend
     const parsedQuery = parse(req.body.query);
-
     //USE INTROSPECTION TO IDENTIFY TYPES
 
     // array to store all query types
@@ -51,10 +50,9 @@ module.exports = function (graphQlPath) {
               }
           }`
     );
-
     // PARSING THROUGH QUERIES WITH ARGS AND STORING THEM IN TYPESARR
     data.__schema.types[0].fields.forEach((type) => {
-      typesArr.push(type.name);
+        typesArr.push(type.name);
     });
 
     // PARSING THROUGH EACH FIELD TO CHECK TYPEOF EXIST TO FIND TYPES INSIDE NESTED QUERY
@@ -68,12 +66,12 @@ module.exports = function (graphQlPath) {
             field.type.ofType &&
             typeof field.type.ofType.name === "string" &&
             typesArr.includes(field.type.ofType.name.toLowerCase())
-          ) {
-            typesArr.push(field.name);
-          }
-        });
-      }
-    });
+            ) {
+              typesArr.push(field.name);
+            }
+          });
+        }
+      });
 
     // Variables to store data from query received from visitor function
     let operation = "";
@@ -103,7 +101,17 @@ module.exports = function (graphQlPath) {
         if (typesArr.includes(currentField)) {
           // if field is first element in typesArr
           if (currentField === typesArr[0]) {
+            
             // reassign root var with root field of first element in typesArr with arguments from visiotr function if any
+            rootField = currentField;
+            // check if there are args on current node and if so call argument visitor method
+            if (node.arguments.length) {
+              const args = visit(node, argVisitor);
+              // add to main root
+              rootField = rootField.concat(args.arguments[0]);
+            }
+          }
+          else if (currentField === typesArr[1]) {
             rootField = currentField;
             // check if there are args on current node and if so call argument visitor method
             if (node.arguments.length) {
@@ -131,7 +139,6 @@ module.exports = function (graphQlPath) {
         }
       },
     };
-
     visit(parsedQuery, visitor);
 
     function deepMerge(...objects) {
@@ -226,20 +233,6 @@ module.exports = function (graphQlPath) {
           };
           dataToReturn.data = resObj;
 
-          //if data check is empty array, that means the person we're querying for does not exist in the database yet
-          const dataCheck = await Person.find({
-            name: dataToReturn.data.person.name,
-          });
-          if (dataCheck.length === 0) {
-            //store person data in the database
-            await Person.create({
-              // id: 1,
-              name: dataToReturn.data.person.name,
-              height: dataToReturn.data.person.height,
-              hair_color: dataToReturn.data.person.hair_color,
-              films: dataToReturn.data.person.films,
-            });
-          }
           res.locals.response = dataToReturn;
           return next();
         }

@@ -28,6 +28,8 @@ const Person = mongoose.model("person", personSchema);
 
 const filmSchema = new Schema({
   title: String,
+  director: String,
+  url: String
 });
 
 const Film = mongoose.model("film", filmSchema);
