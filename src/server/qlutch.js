@@ -1,17 +1,20 @@
 const redis = require("./redis");
 const { request, gql } = require("graphql-request");
-const { visit } = require("graphql");
+const { visit, TypeInfo, visitWithTypeInfo } = require("graphql");
 const { parse } = require("graphql/language");
 const { Person, Film } = require("./database");
+const schema = require("./schema/schema");
+const { types } = require("node-sass");
+const { ChunkGraph } = require("webpack");
 
 module.exports = function (graphQlPath) {
   return async function (req, res, next) {
     console.log("---- in QLutch ---- ");
-    // console.log(req.body.query);
+
     //parse query from frontend
     const parsedQuery = parse(req.body.query);
-    //USE INTROSPECTION TO IDENTIFY TYPES
 
+    //USE INTROSPECTION TO IDENTIFY TYPES
     // array to store all query types
     const typesArr = [];
 
@@ -50,6 +53,7 @@ module.exports = function (graphQlPath) {
               }
           }`
     );
+
     // PARSING THROUGH QUERIES WITH ARGS AND STORING THEM IN TYPESARR
     data.__schema.types[0].fields.forEach((type) => {
       typesArr.push(type.name);
@@ -72,6 +76,37 @@ module.exports = function (graphQlPath) {
         });
       }
     });
+
+    const findAllTypes = (obj, props) => {
+      const valuesObj = {};
+    
+      const findRecursively = (currentObj, visited) => {
+        visited.add(currentObj);
+    
+        for (let key in currentObj) {
+          const value = currentObj[key];
+          if (props.includes(value)) {
+            valuesObj[value] = value;
+          }
+          if (Array.isArray(value)) {
+            value.forEach((el) => {
+              if (typeof el === "object" && !visited.has(el)) {
+                findRecursively(el, visited);
+              }
+            });
+          } else if (typeof value === "object" && !visited.has(value)) {
+            findRecursively(value, visited);
+          }
+        }
+      };
+    
+      findRecursively(obj, new Set());
+      return valuesObj;
+    };
+    //returns object with all types found in query
+    const valuesObj = findAllTypes(parsedQuery, typesArr);
+    //the actual query types being used in the query
+    const valuesArr = Object.values(valuesObj);
 
     // Variables to store data from query received from visitor function
     let operation = "";
@@ -97,55 +132,36 @@ module.exports = function (graphQlPath) {
       Field: (node) => {
         // create a var to store an current field name
         const currentField = node.name.value;
-        console.log(currentField, typesArr);
         // check if field is in typesArr
-        if (typesArr.includes(currentField)) {
-          console.log(typesArr.includes(currentField));
-          // for (let i = 0; i < typesArr.length; i++) {
-          //   console.log(typesArr[i]);
-          //   rootField = currentField
-          // }
-            // if field is first element in typesArr
-            if (currentField === typesArr[0]) {
-              // reassign root var with root field of first element in typesArr with arguments from visiotr function if any
-              rootField = currentField;
-              // console.log(rootField);
-              // check if there are args on current node and if so call argument visitor method
-              if (node.arguments.length) {
-                // console.log(node.arguments);
-                const args = visit(node, argVisitor);
-                // add to main root
-                rootField = rootField.concat(args.arguments[0]);
-                // console.log(rootField);
-              }
-            }
-            // else if (currentField === typesArr[1]) {
-            //   rootField = currentField;
-            //   // check if there are args on current node and if so call argument visitor method
-            //   if (node.arguments.length) {
-            //     const args = visit(node, argVisitor);
-            //     // add to main root
-            //     rootField = rootField.concat(args.arguments[0]);
-            //   }
-            // }
-            // NOT DRY - CHECKING FOR ARGS TWICE
-            // else re-assign currentType to current type
-            // check for args
-            else {
-              let currentType = node.name.value;
-              // console.log(currentType);
-              if (node.arguments.length) {
-                const args = visit(node, argVisitor);
-                // add to currentType
-                currentType = currentType.concat(args.arguments[0]);
-              }
+        if (valuesArr.includes(currentField)) {
+          if (currentField === valuesArr[0]) {
+            // reassign root var with root field of first element in typesArr with arguments from visiotr function if any
+            rootField = currentField;
+            // check if there are args on current node and if so call argument visitor method
+            if (node.arguments.length) {
+              // console.log(node.arguments);
+              const args = visit(node, argVisitor);
               // add to main root
-              rootField = rootField.concat(currentType);
+              rootField = rootField.concat(args.arguments[0]);
+              // console.log(rootField);
             }
+          } 
+          // NOT DRY - CHECKING FOR ARGS TWICE
+          // else re-assign currentType to current type
+          // check for args
+          else {
+            let currentType = node.name.value;
+            if (node.arguments.length) {
+              const args = visit(node, argVisitor);
+              // add to currentType
+              currentType = currentType.concat(args.arguments[0]);
+            }
+            // add to main root
+            rootField = rootField.concat(currentType);
+          }
         } // else add each field to root value and build out object
         else {
           keysToCache.push(rootField.concat(node.name.value));
-          console.log(keysToCache);
         }
       },
     };
@@ -231,8 +247,11 @@ module.exports = function (graphQlPath) {
           const mergeArr = keysToRequestArr.map(
             async (key) => await getResponse(key)
           );
+          // console.log("this is the mergeArr", mergeArr);
+          // console.log("just before toBeMerged in GGQL response");
           const toBeMerged = await Promise.all(mergeArr);
           sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
+          // console.log("at end of ggql response");
         }
 
         async function sendResponse(resObj) {
@@ -245,6 +264,7 @@ module.exports = function (graphQlPath) {
           res.locals.response = dataToReturn;
           return next();
         }
+        // console.log("ggqlResponse is called");
         GGQLResponse();
       } catch (err) {
         console.log("err: ", err);
