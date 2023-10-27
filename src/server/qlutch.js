@@ -1,11 +1,7 @@
 const redis = require("./redis");
 const { request, gql } = require("graphql-request");
-const { visit, TypeInfo, visitWithTypeInfo } = require("graphql");
+const { visit } = require("graphql");
 const { parse } = require("graphql/language");
-const { Person, Film } = require("./database");
-const schema = require("./schema/schema");
-const { types } = require("node-sass");
-const { ChunkGraph } = require("webpack");
 
 module.exports = function (graphQlPath) {
   return async function (req, res, next) {
