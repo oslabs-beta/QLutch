@@ -77,30 +77,34 @@ module.exports = function (graphQlPath) {
       }
     });
 
+    //checks parsedQuery for types used in query
     const findAllTypes = (obj, props) => {
       const valuesObj = {};
-    
-      const findRecursively = (currentObj, visited) => {
+
+      //helper function to traverse deeply nested query
+      const traverseParsedQuery = (currentObj, visited) => {
         visited.add(currentObj);
     
         for (let key in currentObj) {
           const value = currentObj[key];
+          //this is where the actual query types are getting stored in valuesObj
           if (props.includes(value)) {
             valuesObj[value] = value;
           }
+          //if current value is an array, iterates through array to find more objects to traverse, or recursively calls traverseParsedQuery if an object is found
           if (Array.isArray(value)) {
             value.forEach((el) => {
               if (typeof el === "object" && !visited.has(el)) {
-                findRecursively(el, visited);
+                traverseParsedQuery(el, visited);
               }
             });
           } else if (typeof value === "object" && !visited.has(value)) {
-            findRecursively(value, visited);
+            traverseParsedQuery(value, visited);
           }
         }
       };
     
-      findRecursively(obj, new Set());
+      traverseParsedQuery(obj, new Set());
       return valuesObj;
     };
     //returns object with all types found in query
