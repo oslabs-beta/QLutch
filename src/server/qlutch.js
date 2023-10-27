@@ -143,11 +143,9 @@ module.exports = function (graphQlPath) {
             rootField = currentField;
             // check if there are args on current node and if so call argument visitor method
             if (node.arguments.length) {
-              // console.log(node.arguments);
               const args = visit(node, argVisitor);
               // add to main root
               rootField = rootField.concat(args.arguments[0]);
-              // console.log(rootField);
             }
           } 
           // NOT DRY - CHECKING FOR ARGS TWICE
@@ -217,8 +215,6 @@ module.exports = function (graphQlPath) {
 
         // get response writes a query and request each field from graphql
         async function getResponse(key) {
-          // keysToRequestArr.forEach(async (key) => {
-          // console.log("key", key)
           // create graphql query
           let parsedGraphQLQuery = `query {`;
           let curlyBracesCount = 1;
@@ -251,11 +247,8 @@ module.exports = function (graphQlPath) {
           const mergeArr = keysToRequestArr.map(
             async (key) => await getResponse(key)
           );
-          // console.log("this is the mergeArr", mergeArr);
-          // console.log("just before toBeMerged in GGQL response");
           const toBeMerged = await Promise.all(mergeArr);
           sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
-          // console.log("at end of ggql response");
         }
 
         async function sendResponse(resObj) {
@@ -268,7 +261,6 @@ module.exports = function (graphQlPath) {
           res.locals.response = dataToReturn;
           return next();
         }
-        // console.log("ggqlResponse is called");
         GGQLResponse();
       } catch (err) {
         console.log("err: ", err);
