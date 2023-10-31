@@ -4,6 +4,7 @@ const cors = require("cors");
 const { graphqlHTTP } = require("express-graphql");
 const { GraphQLSchema, GraphQLObjectType, GraphQLString } = require('graphql');
 const schema = require("./schema/schema");
+// const schema = require("./schema/database_schema");
 const rootValue = require("./resolvers/rootValue");
 const port = process.env.PORT || 4000;
 const path = require("path");
@@ -32,7 +33,6 @@ app.use (
   '/actualGraphql', 
   graphqlHTTP({
     schema,
-    rootValue,
     graphiql: true
   })
 );
