@@ -27,7 +27,10 @@ export default function Request() {
 
             // body: JSON.stringify(document.getElementById("queryInput").value)
             body: JSON.stringify({ query })
-            // body: JSON.stringify({ query: "{ person (id: 1) {name height hair_color films (id: 5) { title } } }" })
+            // body: JSON.stringify({ query: "{ person (id: 1) { films (id: 5) { title } } }" })
+            // body: JSON.stringify({ query: "{ person (id: 1) { films { title  } } }" })
+            // body: JSON.stringify({ query: "{ person (id: 1) { name height } }" })
+            // body: JSON.stringify({ query: "{ person (id: 1) {name height hair_color films { title } } }" })
         })
             .then((response) => {
                 setStatus(response.status);
