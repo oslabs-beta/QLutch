@@ -1,11 +1,9 @@
-const fetch = require("node-fetch");
-const redis = require("./redis");
 const { request, gql } = require("graphql-request");
-const { visit, __EnumValue, __Directive, __DirectiveLocation } = require('graphql')
+const { visit } = require('graphql')
 const { parse } = require('graphql/language')
-const schema = require('./schema/schema');
 
-module.exports = function (graphQlPath) {
+
+module.exports = function (graphQlPath, redis) {
     return async function (req, res, next) {
 
         try {
