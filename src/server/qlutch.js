@@ -80,7 +80,7 @@ module.exports = function (graphQlPath) {
       //helper function to traverse deeply nested query
       const traverseParsedQuery = (currentObj, visited) => {
         visited.add(currentObj);
-    
+
         for (let key in currentObj) {
           const value = currentObj[key];
           //this is where the actual query types are getting stored in valuesObj
@@ -99,10 +99,11 @@ module.exports = function (graphQlPath) {
           }
         }
       };
-    
+
       traverseParsedQuery(obj, new Set());
       return valuesObj;
     };
+
     //returns object with all types found in query
     const valuesObj = findAllTypes(parsedQuery, typesArr);
     //the actual query types being used in the query
@@ -123,6 +124,8 @@ module.exports = function (graphQlPath) {
         return `(${node.name.value}:${node.value.value})`;
       },
     };
+    //in order to not have to pass a film id in, I stored this so we could apply it to the currentField when not evaluating rootField
+    let parentId;
 
     // main visitor object that builds out field array
     const visitor = {
@@ -141,9 +144,11 @@ module.exports = function (graphQlPath) {
             if (node.arguments.length) {
               const args = visit(node, argVisitor);
               // add to main root
+              //defining parentId
+              parentId = args.arguments[0];
               rootField = rootField.concat(args.arguments[0]);
             }
-          } 
+          }
           // NOT DRY - CHECKING FOR ARGS TWICE
           // else re-assign currentType to current type
           // check for args
@@ -154,12 +159,11 @@ module.exports = function (graphQlPath) {
               // add to currentType
               currentType = currentType.concat(args.arguments[0]);
             }
-            // add to main root
-            rootField = rootField.concat(currentType);
+            rootField = rootField.concat(`{${currentType}`);
           }
         } // else add each field to root value and build out object
         else {
-          keysToCache.push(rootField.concat(node.name.value));
+          keysToCache.push(rootField.concat(`{${node.name.value}}`));
         }
       },
     };
@@ -172,6 +176,19 @@ module.exports = function (graphQlPath) {
             if (typeof obj[key] === "object" && !Array.isArray(obj[key])) {
               // If the property is an object, recursively merge it
               merged[key] = deepMerge(merged[key] || {}, obj[key]);
+            } else if (Array.isArray(obj[key])) {
+              // If the property is an array, handle each element
+              if (!merged[key]) {
+                merged[key] = [];
+              }
+              obj[key].forEach((el, index) => {
+                // Check if the element is an object and merge it if needed
+                if (typeof el === "object" && !Array.isArray(el)) {
+                  merged[key][index] = deepMerge(merged[key][index] || {}, el);
+                } else {
+                  merged[key][index] = el;
+                }
+              });
             } else {
               // Otherwise, assign the value
               merged[key] = obj[key];
@@ -198,7 +215,9 @@ module.exports = function (graphQlPath) {
 
     async function createResponse() {
       try {
+        //checks cache to see if data exists already in cache
         const checkDataIsCachedArr = keysToCache.map((key) => getCache(key));
+        //array with whatever data is found in the cache
         const response = await Promise.all(checkDataIsCachedArr);
         // iterates through response array and checks for values to be push to responseToMerge or keyToRequest
         for (let i = 0; i < response.length; i++) {
@@ -213,13 +232,12 @@ module.exports = function (graphQlPath) {
         async function getResponse(key) {
           // create graphql query
           let parsedGraphQLQuery = `query {`;
-          let curlyBracesCount = 1;
+          let curlyBracesCount = 0;
 
           key.split("").forEach((char) => {
-            if (char === ")") {
-              parsedGraphQLQuery = parsedGraphQLQuery.concat(char + "{");
-              curlyBracesCount++;
-            } else parsedGraphQLQuery = parsedGraphQLQuery.concat(char);
+            if (char === "{") curlyBracesCount++;
+
+            parsedGraphQLQuery = parsedGraphQLQuery.concat(char);
           });
 
           parsedGraphQLQuery = parsedGraphQLQuery.concat(
@@ -234,30 +252,30 @@ module.exports = function (graphQlPath) {
           let response = await request(`${graphQlPath}`, document);
           // WHERE TO SET REDIS
           redis.set(key, JSON.stringify(response));
-
+          console.log("response: ", response.person.films);
           return response;
         }
 
         // request response from gql and calls deep merge to return merged object to sendResponse
-        async function GGQLResponse() {
+        async function GQLResponse() {
           const mergeArr = keysToRequestArr.map(
             async (key) => await getResponse(key)
           );
           const toBeMerged = await Promise.all(mergeArr);
           sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
+          // console.log("toBeMerged:", toBeMerged);
+          // console.log("responsetoMergeArr:", responseToMergeArr);
         }
 
         async function sendResponse(resObj) {
-          // create a var to return response data
           const dataToReturn = {
             data: {},
           };
           dataToReturn.data = resObj;
-
           res.locals.response = dataToReturn;
           return next();
         }
-        GGQLResponse();
+        GQLResponse();
       } catch (err) {
         console.log("err: ", err);
       }

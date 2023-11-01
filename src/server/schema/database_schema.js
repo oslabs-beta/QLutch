@@ -21,8 +21,29 @@ const PersonType = new GraphQLObjectType({
     hair_color: {
       type: GraphQLString,
     },
+    // films: {
+    //   type: GraphQLList(FilmType)},
     films: {
-      type: GraphQLList(FilmType)},
+      type: new GraphQLList(FilmType),
+      args: { id: {type: GraphQLInt} },
+      resolve: async (parent, args, context, info) => {
+        //store film objects listed in character document
+        const findFilms = parent.films;
+        //create array to return films
+        const characterFilms = [];
+        //iterate through findFilms - cannot use forEach because it does not accommodate asynchronous calls
+        for(let i = 0; i < findFilms.length; i++) {
+          //isolate film id - use toString() to remove mongo ObjectId context
+          const filmId = findFilms[i].id.toString();
+          //query database with filmId - use findOne so you only get the object back NOT in an array
+          const film = await Film.findOne({_id: filmId});
+          //push film to characterFilms
+          characterFilms.push(film);
+        }
+        //return characterFilms array to frontend
+        return characterFilms;
+      },
+    },
   }),
 });
 
@@ -30,6 +51,9 @@ const FilmType = new GraphQLObjectType({
   name: "Film",
   fields: () => ({
     title: { type: GraphQLString },
+    director: { type: GraphQLString },
+    opening_crawl: { type: GraphQLString },
+    producer: { type: GraphQLString },
   }),
 });
 
@@ -40,11 +64,10 @@ const databaseSchema = new GraphQLSchema({
       person: {
         type: PersonType,
         //had to change arguments to name to work with starwars database in MongoDB
-        args: {name: { type: GraphQLString }} ,
+        args: { name: { type: GraphQLString }, id: {type: GraphQLInt} },
         resolve: async (parent, args, context, info) => {
           try {
-            const result = await Person.findOne({ name: args.name });
-            return result;
+            return await Person.findOne({ id: args.id });
           } catch (error) {
             throw error;
           }
@@ -55,8 +78,7 @@ const databaseSchema = new GraphQLSchema({
         args: { id: { type: GraphQLInt } },
         resolve: async (parent, args, context, info) => {
           try {
-            const result = await Film.findOne({ episode_id: args.id });
-            return result;
+            return await Film.findOne({ episode_id: args.id });
           } catch (error) {
             throw error;
           }
