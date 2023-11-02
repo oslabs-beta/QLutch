@@ -29,7 +29,7 @@ module.exports = function (graphQlPath) {
       "__DirectiveLocation",
     ];
 
-    //using introspection query
+    //using introspection que
     let data = await request(
       `${graphQlPath}`,
       `{
@@ -50,10 +50,23 @@ module.exports = function (graphQlPath) {
           }`
     );
 
+    data.__schema.types.forEach(type => {
+      if(type.name === "Query" || type.name === "Mutation") {
+        type.fields.forEach((type) => {
+          typesArr.push(type.name);
+        });
+      }
+    })
+
     // PARSING THROUGH QUERIES WITH ARGS AND STORING THEM IN TYPESARR
-    data.__schema.types[0].fields.forEach((type) => {
-      typesArr.push(type.name);
-    });
+    
+
+    // data.__schema.types[0].fields.forEach((type) => {
+    //   typesArr.push(type.name);
+    // });
+
+    // console.log("data.__schema.types", data.__schema.types);
+
 
     // PARSING THROUGH EACH FIELD TO CHECK TYPEOF EXIST TO FIND TYPES INSIDE NESTED QUERY
     data.__schema.types.forEach((type) => {
@@ -72,7 +85,7 @@ module.exports = function (graphQlPath) {
         });
       }
     });
-
+    console.log("typesArr", typesArr);
     //checks parsedQuery for types used in query
     const findAllTypes = (obj, props) => {
       const valuesObj = {};
@@ -106,9 +119,10 @@ module.exports = function (graphQlPath) {
 
     //returns object with all types found in query
     const valuesObj = findAllTypes(parsedQuery, typesArr);
+
     //the actual query types being used in the query
     const valuesArr = Object.values(valuesObj);
-
+    console.log("valuesArr", valuesArr);
     // Variables to store data from query received from visitor function
     let operation = "";
 
@@ -131,6 +145,7 @@ module.exports = function (graphQlPath) {
     const visitor = {
       OperationDefinition: (node) => {
         operation = node.operation;
+        console.log("operation: ", operation);
       },
       Field: (node) => {
         // create a var to store an current field name
@@ -231,7 +246,7 @@ module.exports = function (graphQlPath) {
         // get response writes a query and request each field from graphql
         async function getResponse(key) {
           // create graphql query
-          let parsedGraphQLQuery = `query {`;
+          let parsedGraphQLQuery = `mutation {`;
           let curlyBracesCount = 0;
 
           key.split("").forEach((char) => {
@@ -252,7 +267,6 @@ module.exports = function (graphQlPath) {
           let response = await request(`${graphQlPath}`, document);
           // WHERE TO SET REDIS
           redis.set(key, JSON.stringify(response));
-          console.log("response: ", response.person.films);
           return response;
         }
 

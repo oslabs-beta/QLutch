@@ -86,6 +86,25 @@ const databaseSchema = new GraphQLSchema({
       },
     },
   }),
+  mutation: new GraphQLObjectType({
+    name: "Mutation",
+    fields: {
+      addPerson : {
+        type : PersonType,
+        args: { name: { type: GraphQLString }, id: {type: GraphQLInt}, height: {type: GraphQLInt}, hair_color : {type: GraphQLString}  },
+        resolve : async (parent, args, context, info) => {
+          try {
+            const {name, id, height, hair_color} = args;
+            return await Person.create({name, id, height, hair_color})
+            // console.log('args: ', args)
+          } catch (error) {
+            throw error;
+          }
+        }
+      },
+      
+    }
+  }),
 });
 
 module.exports = databaseSchema;
