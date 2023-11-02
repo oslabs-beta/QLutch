@@ -5,6 +5,7 @@ const {
   GraphQLString,
   GraphQLInt,
   GraphQLID,
+  GraphQLInputObjectType,
 } = require("graphql");
 
 const { Person, Film } = require("../database");
@@ -52,10 +53,15 @@ const FilmType = new GraphQLObjectType({
   fields: () => ({
     title: { type: GraphQLString },
     director: { type: GraphQLString },
-    opening_crawl: { type: GraphQLString },
-    producer: { type: GraphQLString },
   }),
 });
+
+const FilmInput = new GraphQLInputObjectType({
+  name: "FilmInput",
+  fields: {
+    id: {type: GraphQLString},
+  }
+})
 
 const databaseSchema = new GraphQLSchema({
   query: new GraphQLObjectType({
@@ -91,11 +97,11 @@ const databaseSchema = new GraphQLSchema({
     fields: {
       addPerson : {
         type : PersonType,
-        args: { name: { type: GraphQLString }, id: {type: GraphQLInt}, height: {type: GraphQLInt}, hair_color : {type: GraphQLString}  },
+        args: { name: { type: GraphQLString }, id: {type: GraphQLInt}, height: {type: GraphQLInt}, hair_color : {type: GraphQLString}, films: {type: new GraphQLList(FilmInput)}  },
         resolve : async (parent, args, context, info) => {
           try {
-            const {name, id, height, hair_color} = args;
-            return await Person.create({name, id, height, hair_color})
+            const {name, id, height, hair_color, films} = args;
+            return await Person.create({name, id, height, hair_color, films})
             // console.log('args: ', args)
           } catch (error) {
             throw error;
