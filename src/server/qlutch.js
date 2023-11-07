@@ -9,7 +9,7 @@ module.exports = function (graphQlPath) {
 
     //parse query from frontend
     const parsedQuery = parse(req.body.query);
-
+    // console.log("parsedQuery: ", parsedQuery.definitions[0].selectionSet.selections[0].selectionSet);
     //USE INTROSPECTION TO IDENTIFY TYPES
     // array to store all query types
     const typesArr = [];
@@ -29,7 +29,7 @@ module.exports = function (graphQlPath) {
       "__DirectiveLocation",
     ];
 
-    //using introspection que
+    // using introspection que
     let data = await request(
       `${graphQlPath}`,
       `{
@@ -49,6 +49,24 @@ module.exports = function (graphQlPath) {
               }
           }`
     );
+    // console.log();
+    // let data = await request(
+    //   `${graphQlPath}`,
+    //   `{
+    //     __schema {
+    //       mutationType {
+    //         fields {
+    //           name
+    //           type {
+    //             name
+    //           }
+    //         }
+    //       }
+    //     }
+    //   }`
+    // );
+
+    // console.log("mutation field data",data.__schema.mutationType.fields[0].type.name);
 
     data.__schema.types.forEach((type) => {
       if (type.name === "Query" || type.name === "Mutation") {
@@ -64,13 +82,14 @@ module.exports = function (graphQlPath) {
     //   typesArr.push(type.name);
     // });
 
-    // console.log("data.__schema.types", data.__schema.types);
+    // console.log("data", data);
+    // console.log("data.__schema.types", JSON.stringify(data.__schema.types));
 
     // PARSING THROUGH EACH FIELD TO CHECK TYPEOF EXIST TO FIND TYPES INSIDE NESTED QUERY
     data.__schema.types.forEach((type) => {
       // check if current type name is inside excluded typeArr
       if (!excludedTypeNames.includes(type.name)) {
-        console.log("fields", type.fields);
+        // console.log("fields", type.fields);
         // if not in typeArr iterate through current field
         if (type.fields) {
           type.fields.forEach((field) => {
@@ -88,7 +107,7 @@ module.exports = function (graphQlPath) {
         }
       }
     });
-    console.log("typesArr", typesArr);
+    // console.log("typesArr", typesArr);
     //checks parsedQuery for types used in query
     const findAllTypes = (obj, props) => {
       const valuesObj = {};
@@ -120,6 +139,8 @@ module.exports = function (graphQlPath) {
       return valuesObj;
     };
 
+    
+
     //returns object with all types found in query
     const valuesObj = findAllTypes(parsedQuery, typesArr);
 
@@ -135,12 +156,14 @@ module.exports = function (graphQlPath) {
     // create a var to store an object of arrays
     const keysToCache = [];
 
+    let id;
     // visitor object for arguments is called from field method in main visitor object with the input of current field node
     const argVisitor = {
       Argument: (node) => {
-        // console.log('typeof node: ', typeof node.value.value)
+        // console.log('node value: ', node.name.value)
         // console.log('node: ', node)
 
+        // if (node.name.value === 'id') id = node.value.value;
         if (node.value.kind === "StringValue") {
           // console.log('nodeValue:', node.value.value)
           return `(${node.name.value}:"${node.value.value}")`;
@@ -148,20 +171,21 @@ module.exports = function (graphQlPath) {
       },
     };
     //in order to not have to pass a film id in, I stored this so we could apply it to the currentField when not evaluating rootField
-    let parentId;
-
     // main visitor object that builds out field array
     const visitor = {
       OperationDefinition: (node) => {
         operation = node.operation;
         // console.log("operation: ", operation);
       },
-      Field: (node) => {
+      Field: async (node) => {
+        // console.log("node: ", node);
         // create a var to store an current field name
         const currentField = node.name.value;
         // console.log('currentField: ', currentField)
         // check if field is in typesArr
         if (valuesArr.includes(currentField)) {
+          // CHECK HERE ON VALUESARR[0] --------------------------------------
+
           if (currentField === valuesArr[0]) {
             // reassign root var with root field of first element in typesArr with arguments from visiotr function if any
             rootField = currentField;
@@ -170,9 +194,14 @@ module.exports = function (graphQlPath) {
               const args = visit(node, argVisitor);
               // console.log('args: ', args.arguments)
               // add to main root
-              //defining parentId
-              parentId = args.arguments[0];
-              rootField = rootField.concat(args.arguments[0]);
+              const arguments = args.arguments.map((arg) => {
+                if(arg.includes("id:")) id = arg;
+                // console.log('arg:', arg)
+                return arg
+              });
+              // console.log(arguments);
+              // console.log("rootField: ", rootField);
+              rootField = rootField.concat(id);
             }
           }
           // NOT DRY - CHECKING FOR ARGS TWICE
@@ -194,7 +223,7 @@ module.exports = function (graphQlPath) {
       },
     };
     visit(parsedQuery, visitor);
-    // console.log('keysToCache: ', keysToCache)
+    console.log('keysToCache: ', keysToCache)
 
     function deepMerge(...objects) {
       return objects.reduce((merged, obj) => {
@@ -286,7 +315,7 @@ module.exports = function (graphQlPath) {
 
           let response = await request(`${graphQlPath}`, document);
           // WHERE TO SET REDIS
-          redis.set(key, JSON.stringify(response));
+          // redis.set(key, JSON.stringify(response));
           return response;
         }
 
