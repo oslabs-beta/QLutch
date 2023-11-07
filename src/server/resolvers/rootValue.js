@@ -1,39 +1,17 @@
-// const fetch = require("node-fetch");
-// const redis = require("../redis");
-
 // const rootValue = {
-//   hello: () => {
-//     return "hello";
-//   },
-//   books: [
-//     {
-//       title: "The Name of the Wind",
-//       author: "Patrick Rothfuss",
-//     },
-//     {
-//       title: "The Wise Man's Fear",
-//       author: "Patrick Rothfuss",
-//     },
-//   ],
-//   people: async (parent, args, context) => {
-//     const peopleId = parent.id;
-//     console.log("inside resolver peopleId: ", peopleId);
-
-//     const person = await redis.get(`id${parent.id}`);
-//     if (person) {
-//       return { name: person };
-//     } else {
-//       return new Promise((resolve, reject) => {
-//         fetch(`http://swapi.dev/api/people/${peopleId}`)
-//           .then((data) => data.json())
-//           .then((result) => {
-//             console.log(result.name);
-//             redis.set("id1", result.name);
-//             resolve({ name: result.name });
-//           })
-//           .catch((error) => {
-//             reject(error);
-//           });
+//   person: async (parent, args, context) => {
+//     // if data check is empty array, that means the person we're querying for does not exist in the database yet
+//     const dataCheck = await Person.find({
+//       name: dataToReturn.data.person.name,
+//     });
+//     if (dataCheck.length === 0) {
+//       //store person data in the database
+//       await Person.create({
+//         id: 1,
+//         name: dataToReturn.data.person.name,
+//         height: dataToReturn.data.person.height,
+//         hair_color: dataToReturn.data.person.hair_color,
+//         films: dataToReturn.data.person.films,
 //       });
 //     }
 //   },

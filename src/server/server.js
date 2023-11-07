@@ -3,7 +3,8 @@ require("dotenv").config();
 const cors = require("cors");
 const { graphqlHTTP } = require("express-graphql");
 const { GraphQLSchema, GraphQLObjectType, GraphQLString } = require('graphql');
-const schema = require("./schema/schema");
+// const schema = require("./schema/schema");
+const schema = require("./schema/database_schema");
 const rootValue = require("./resolvers/rootValue");
 const port = process.env.PORT || 4000;
 const path = require("path");
@@ -24,7 +25,7 @@ app.get("/", (req, res) => {
 
 // serving graphQL & graphiql
 app.use("/graphql", qlutch("http://localhost:4000/actualGraphql"), (req,res) =>{
-  console.log('this is from the server file: ', res.locals.response);
+  // console.log("response from server file: ", res.locals.response);
   return res.json(res.locals.response);
 })
 

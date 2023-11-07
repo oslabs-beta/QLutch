@@ -59,6 +59,8 @@ export default function Request() {
                             className="input-textarea"
                             type="textarea"
                             placeholder="Enter query here..."
+                            //added this for developing purposes - don't forget to remove!!
+                            // value="{ person (id: 1) {name height hair_color films (id: 5) { title } } }"
                         />
                         <div className="input-buttons">
                             <button
