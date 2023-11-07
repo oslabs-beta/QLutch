@@ -70,7 +70,7 @@ const databaseSchema = new GraphQLSchema({
       person: {
         type: PersonType,
         //had to change arguments to name to work with starwars database in MongoDB
-        args: { name: { type: GraphQLString }, id: { type: GraphQLInt } },
+        args: { id: { type: GraphQLInt } },
         resolve: async (parent, args, context, info) => {
           try {
             return await Person.findOne({ id: args.id });
