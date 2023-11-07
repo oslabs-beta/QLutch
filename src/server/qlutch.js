@@ -125,38 +125,7 @@ module.exports = function (graphQlPath) {
 
     //the actual query types being used in the query
     const valuesArr = Object.values(valuesObj);
-    console.log("valuesArr", valuesArr);
-
-    //create function that will be called in the visitor function if the operation is a mutation
-      //this function will find the query type associated with the current mutation
-      //check parsedQuery first to determine the mutation type - might be able to just pull this from valuesArr
-      //then check through introspection data to look for the mutation information
-        //find the dataType 
-    //inputs: introspection data, parsedQuery
-    //output: (String/Object)
-    const findMutationQueryType = (introspection, parsedQuery) => {
-      // console.log(introspection);
-      // console.log("parsedQuery: ", parsedQuery.definitions[0].selectionSet.selections[0].selectionSet);
-      let mutationType;
-      const types = introspection.__schema.types;
-
-      console.log("mutations", types);
-      types.forEach(type => {
-        if(type.name === "Mutation") {
-          const mutations = type.fields;
-          mutations.forEach(mutation => {
-            if(valuesArr.includes(mutation.name)){
-              // console.log("mutation name", mutation.type.name.toLowerCase());
-              mutationType = mutation.type.name.toLowerCase();
-            }
-          })
-          console.log("type", type.fields);
-        }
-      })
-      return mutationType;
-    }
-
-
+    // console.log("valuesArr", valuesArr);
     // Variables to store data from query received from visitor function
     let operation = "";
 
@@ -190,6 +159,7 @@ module.exports = function (graphQlPath) {
       Field: (node) => {
         // create a var to store an current field name
         const currentField = node.name.value;
+        console.log('currentField: ', currentField);
         console.log('currentField: ', currentField);
         // check if field is in typesArr
         if (valuesArr.includes(currentField)) {
@@ -228,7 +198,7 @@ module.exports = function (graphQlPath) {
       },
     };
     visit(parsedQuery, visitor);
-    // console.log('keysToCache: ', keysToCache)
+    console.log('keysToCache: ', keysToCache)
 
     function deepMerge(...objects) {
       return objects.reduce((merged, obj) => {
