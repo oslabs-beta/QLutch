@@ -6,6 +6,7 @@ const { parse } = require("graphql/language");
 module.exports = function (graphQlPath) {
   return async function (req, res, next) {
     console.log("---- in QLutch ---- ");
+    // console.log("req.body.query: ", req.body.query);
 
     //parse query from frontend
     const parsedQuery = parse(req.body.query);
@@ -70,7 +71,7 @@ module.exports = function (graphQlPath) {
     data.__schema.types.forEach((type) => {
       // check if current type name is inside excluded typeArr
       if (!excludedTypeNames.includes(type.name)) {
-        console.log("fields", type.fields);
+        // console.log("fields", type.fields);
         // if not in typeArr iterate through current field
         if (type.fields) {
           type.fields.forEach((field) => {
@@ -88,7 +89,7 @@ module.exports = function (graphQlPath) {
         }
       }
     });
-    console.log("typesArr", typesArr);
+    // console.log("typesArr", typesArr);
     //checks parsedQuery for types used in query
     const findAllTypes = (obj, props) => {
       const valuesObj = {};
@@ -127,6 +128,29 @@ module.exports = function (graphQlPath) {
     const valuesArr = Object.values(valuesObj);
     // console.log("valuesArr", valuesArr);
     // Variables to store data from query received from visitor function
+
+    const findMutationQueryType = (introspection, parsedQuery) => {
+      // console.log(introspection);
+      // console.log("parsedQuery: ", parsedQuery.definitions[0].selectionSet.selections[0].selectionSet);
+      let mutationType;
+      const types = introspection.__schema.types;
+
+      // console.log("mutations", types);
+      types.forEach((type) => {
+        if (type.name === "Mutation") {
+          const mutations = type.fields;
+          mutations.forEach((mutation) => {
+            if (valuesArr.includes(mutation.name)) {
+              // console.log("mutation name", mutation.type.name.toLowerCase());
+              mutationType = mutation.type.name.toLowerCase();
+            }
+          });
+          // console.log("type", type.fields);
+        }
+      });
+      return mutationType;
+    };
+
     let operation = "";
 
     // create a var to store main field with args if any
@@ -134,6 +158,8 @@ module.exports = function (graphQlPath) {
 
     // create a var to store an object of arrays
     const keysToCache = [];
+
+    let id;
 
     // visitor object for arguments is called from field method in main visitor object with the input of current field node
     const argVisitor = {
@@ -147,8 +173,8 @@ module.exports = function (graphQlPath) {
         } else return `(${node.name.value}:${node.value.value})`;
       },
     };
-    //in order to not have to pass a film id in, I stored this so we could apply it to the currentField when not evaluating rootField
-    let parentId;
+
+    let mutationRootField;
 
     // main visitor object that builds out field array
     const visitor = {
@@ -159,24 +185,47 @@ module.exports = function (graphQlPath) {
       Field: (node) => {
         // create a var to store an current field name
         const currentField = node.name.value;
-        console.log('currentField: ', currentField);
-        console.log('currentField: ', currentField);
+        // console.log('currentField: ', currentField);
         // check if field is in typesArr
         if (valuesArr.includes(currentField)) {
-          if (currentField === valuesArr[0]) {
+          if (operation === "mutation" && !rootField) {
+            rootField = findMutationQueryType(data, parsedQuery);
+            mutationRootField = currentField;
+
+            const args = visit(node, argVisitor);
+            const arguments = args.arguments.map((arg) => {
+              if (arg.includes("id:")) id = arg;
+
+              console.log("arg:", arg);
+              return arg;
+            });
+            // console.log(arguments);
+            // console.log("rootField: ", rootField);
+            rootField = rootField.concat(id);
+            mutationRootField = mutationRootField.concat(id);
+          } else if (currentField === valuesArr[0]) {
+            console.log("hello i'm in the else if");
             // reassign root var with root field of first element in typesArr with arguments from visiotr function if any
             rootField = currentField;
             // check if there are args on current node and if so call argument visitor method
-            if (node.arguments.length) {
-              const args = visit(node, argVisitor);
-              // console.log('args: ', args.arguments)
-              // add to main root
-              //defining parentId
-              parentId = args.arguments[0];
-              rootField = rootField.concat(args.arguments[0]);
-            }
-            console.log("rootField: ", rootField);
+            // if (node.arguments.length) {
+            const args = visit(node, argVisitor);
+            //   // console.log('args: ', args.arguments)
+            //   // add to main root
+            //   //defining parentId
+            //   parentId = args.arguments[0];
+            //   rootField = rootField.concat(args.arguments[0]);
+            const arguments = args.arguments.map((arg) => {
+              if (arg.includes("id:")) id = arg;
+
+              console.log("arg:", arg);
+              return arg;
+            });
+            // console.log(arguments);
+            // console.log("rootField: ", rootField);
+            rootField = rootField.concat(id);
           }
+
           // NOT DRY - CHECKING FOR ARGS TWICE
           // else re-assign currentType to current type
           // check for args
@@ -188,17 +237,20 @@ module.exports = function (graphQlPath) {
               // add to currentType
               currentType = currentType.concat(args.arguments[0]);
             }
-            rootField = rootField.concat(`{${currentType}`);
+            if (operation === "mutation") {
+              mutationRootField = mutationRootField.concat(`{${currentType}`);
+            } else {
+              rootField = rootField.concat(`{${currentType}`);
+            }
           }
         } // else add each field to root value and build out object
         else {
-          console.log("hi we're in valuesArr.includes(currentField) else statement");
           keysToCache.push(rootField.concat(`{${node.name.value}}`));
         }
       },
     };
     visit(parsedQuery, visitor);
-    console.log('keysToCache: ', keysToCache)
+    console.log("keysToCache: ", keysToCache);
 
     function deepMerge(...objects) {
       return objects.reduce((merged, obj) => {
@@ -262,7 +314,7 @@ module.exports = function (graphQlPath) {
 
         // get response writes a query and request each field from graphql
         async function getResponse(key) {
-          // console.log('key: ', key)
+          console.log('key: ', key)
           // create graphql query
           let parsedGraphQLQuery;
 
@@ -282,12 +334,20 @@ module.exports = function (graphQlPath) {
           parsedGraphQLQuery = parsedGraphQLQuery.concat(
             "}".repeat(curlyBracesCount)
           );
-          // console.log('parsedgql: ', parsedGraphQLQuery)
+          console.log("parsedgql: ", parsedGraphQLQuery);
           // // request new query to graphQL
-          const document = gql`
-            ${parsedGraphQLQuery}
-          `;
-
+          let document;
+          if (operation === "mutation") {
+            document = gql`
+              ${req.body.query}
+            `;
+          } else {
+            document = gql`
+              ${parsedGraphQLQuery}
+            `;
+          }
+          console.log('document: ', document)
+          
           let response = await request(`${graphQlPath}`, document);
           // WHERE TO SET REDIS
           redis.set(key, JSON.stringify(response));
@@ -296,13 +356,30 @@ module.exports = function (graphQlPath) {
 
         // request response from gql and calls deep merge to return merged object to sendResponse
         async function GQLResponse() {
-          const mergeArr = keysToRequestArr.map(
-            async (key) => await getResponse(key)
-          );
-          const toBeMerged = await Promise.all(mergeArr);
-          sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
-          // console.log("toBeMerged:", toBeMerged);
-          // console.log("responsetoMergeArr:", responseToMergeArr);
+          if(operation === "mutation") {
+            document = gql`
+              ${req.body.query}
+            `;
+            let response = await request(`${graphQlPath}`, document);
+            console.log('response: ', response)
+            keysToCache.forEach((key) => {
+              getResponse(key);
+              // redis.set(key, JSON.stringify(response));
+            })
+            sendResponse(response);
+          } else {
+            const mergeArr = keysToRequestArr.map(
+              async (key) => await getResponse(key)
+            );
+            // console.log("keysToRequestArr", keysToRequestArr);
+            console.log("mergeArray: ", mergeArr);
+            const toBeMerged = await Promise.all(mergeArr);
+            console.log("toBeMerged: ", toBeMerged);
+            sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
+            // console.log("toBeMerged:", toBeMerged);
+            // console.log("responsetoMergeArr:", responseToMergeArr);
+
+          }
         }
 
         async function sendResponse(resObj) {

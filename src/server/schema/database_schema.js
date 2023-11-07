@@ -107,7 +107,7 @@ const databaseSchema = new GraphQLSchema({
         resolve: async (parent, args, context, info) => {
           try {
             const { name, id, height, hair_color, films } = args;
-            return await Person.create({ name, id, height, hair_color, films });
+            return await Person.create({ id, name, height, hair_color, films });
             // console.log('args: ', args)
           } catch (error) {
             throw error;
