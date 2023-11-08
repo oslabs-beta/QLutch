@@ -159,8 +159,8 @@ module.exports = function (graphQlPath) {
       Field: (node) => {
         // create a var to store an current field name
         const currentField = node.name.value;
-        console.log('currentField: ', currentField);
-        console.log('currentField: ', currentField);
+        // console.log('currentField: ', currentField);
+        // console.log('currentField: ', currentField);
         // check if field is in typesArr
         if (valuesArr.includes(currentField)) {
           if (currentField === valuesArr[0]) {
