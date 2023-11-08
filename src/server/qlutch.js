@@ -129,10 +129,10 @@ module.exports = function (graphQlPath) {
     // console.log("valuesArr", valuesArr);
     // Variables to store data from query received from visitor function
 
+    let mutationType;
     const findMutationQueryType = (introspection, parsedQuery) => {
       // console.log(introspection);
       // console.log("parsedQuery: ", parsedQuery.definitions[0].selectionSet.selections[0].selectionSet);
-      let mutationType;
       const types = introspection.__schema.types;
 
       // console.log("mutations", types);
@@ -291,9 +291,11 @@ module.exports = function (graphQlPath) {
     }
 
     async function getCache(key) {
+      console.log('key in getCache: ', key)
       try {
         //check redis if key is stored and return value
         const cachedData = JSON.parse(await redis.get(key));
+        console.log('cachedData: ', cachedData)
         return cachedData;
       } catch (err) {
         console.log("err: ", err);
@@ -309,7 +311,9 @@ module.exports = function (graphQlPath) {
         //checks cache to see if data exists already in cache
         const checkDataIsCachedArr = keysToCache.map((key) => getCache(key));
         //array with whatever data is found in the cache
+        console.log("checkDataisCachedArr:", checkDataIsCachedArr);
         const response = await Promise.all(checkDataIsCachedArr);
+        console.log("response on 314: ", response);
         // iterates through response array and checks for values to be push to responseToMerge or keyToRequest
         for (let i = 0; i < response.length; i++) {
           if (response[i] === null) {
@@ -358,11 +362,49 @@ module.exports = function (graphQlPath) {
           // console.log('document: ', document)
 
           let response = await request(`${graphQlPath}`, document);
-          
+          console.log("response on line 365: ", response);
           // WHERE TO SET REDIS
           // ADD CONDITION FOR MUTATION TO USE KEY2
           redis.set(key, JSON.stringify(response));
           return response;
+        }
+        // let cacheMutatioinRootField = null;
+
+        async function cacheMutations (keysToCache, response) {
+          console.log('response in cacheMutatioin: ', response)
+          for (const key in response) {
+            // if (!cacheMutatioinRootField) cacheMutatioinRootField = response[key];
+
+            if (typeof response[key] === 'object' && !Array.isArray(response[key])) {
+              cacheMutations(keysToCache,response[key]);
+
+            } else if (Array.isArray(response[key])) {
+              console.log("we are in the array");
+              response[key].forEach(el => {
+                console.log("el: ", el);
+                if (typeof el === 'object' && !Array.isArray(el)) {
+                  console.log("we are in the array if statement");
+                  cacheMutations(keysToCache,response[key]);
+                }
+              })
+            } else {
+              console.log('key: ', key)
+              for(let i = 0; i < keysToCache.length; i++) {
+                if(keysToCache[i].includes(key)) {
+                  console.log("key: ", keysToCache[i], "value: ", response[key]);
+                  //{person: {name: "Luke Skywalker"}}
+                  //addPerson : {name :....}
+                  console.log("mutationType:", mutationType);
+                  const responseSOmethignElse = {
+                    [mutationType]: {
+                      [key]: response[key]
+                    }
+                  }
+                  redis.set(keysToCache[i], JSON.stringify(responseSOmethignElse));
+                }
+              }
+            }
+          }
         }
 
         // request response from gql and calls deep merge to return merged object to sendResponse
@@ -374,7 +416,9 @@ module.exports = function (graphQlPath) {
             let response = await request(`${graphQlPath}`, document);
             const responseArr = Object.entries(response);
           console.log('responseArr: ', responseArr)
-            // console.log("response: ", response);
+            console.log("responseLOOOOOOOOK HERE: ", response);
+            cacheMutations(keysToCache, response);
+          
             // mutationForGQLResponse.forEach((key, index) => {
             //   getResponse(key, keysToCache[index]);
               // redis.set(key, JSON.stringify(response));
@@ -389,8 +433,8 @@ module.exports = function (graphQlPath) {
             const toBeMerged = await Promise.all(mergeArr);
             // console.log("toBeMerged: ", toBeMerged);
             sendResponse(deepMerge(...toBeMerged, ...responseToMergeArr));
-            // console.log("toBeMerged:", toBeMerged);
-            // console.log("responsetoMergeArr:", responseToMergeArr);
+            console.log("toBeMerged:", toBeMerged);
+            console.log("responsetoMergeArr:", responseToMergeArr);
           }
         }
 
