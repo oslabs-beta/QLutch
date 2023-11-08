@@ -24,13 +24,13 @@ app.get("/", (req, res) => {
 });
 
 // serving graphQL & graphiql
-app.use("/graphql", qlutch("http://localhost:4000/actualGraphql"), (req,res) =>{
+app.use("/graphql", qlutch("http://localhost:4000/actualGraphql"), (req, res) => {
   // console.log("response from server file: ", res.locals.response);
   return res.json(res.locals.response);
 })
 
-app.use (
-  '/actualGraphql', 
+app.use(
+  '/actualGraphql',
   graphqlHTTP({
     schema,
     graphiql: true
@@ -41,6 +41,19 @@ app.get("/badCacheReset", async (req, res) => {
   console.log('Cache Flushed')
   await redis.FLUSHALL();
   res.sendStatus(200);
+});
+
+app.use((req,res) => {return res.status(404).send('youve reached the wrong place');});
+
+const defaultErr = {
+  log: 'Express error handler caught unknown middleware error',
+  status: 400,
+  message: { err: 'An error occurred' }, 
+};
+
+app.use((err, req, res, next) => {
+  const errorObj = Object.assign(defaultErr, err);
+  return res.status(errorObj.status).send(errorObj.message);
 });
 
 app.listen(port), console.log(`Server running on ${port} `);

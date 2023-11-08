@@ -39,7 +39,10 @@ export default function Request() {
                 setTime((new Date()) - start);
                 setSize(bytes.format(byteSize));
                 setQueryResult(JSON.stringify(data));
-            });
+            })
+            .catch((err) => {
+                console.log(err);
+            })
     }
 
     // Function to clear the Redis cache
