@@ -241,9 +241,8 @@ module.exports = function (graphQlPath) {
             if (operation === "mutation") {
               mutationRootField = mutationRootField.concat(`{${currentType}`);
               // console.log('mutationRootField: ', mutationRootField)
-            } 
-              rootField = rootField.concat(`{${currentType}`);
-            
+            }
+            rootField = rootField.concat(`{${currentType}`);
           }
         } // else add each field to root value and build out object
         else {
@@ -291,11 +290,11 @@ module.exports = function (graphQlPath) {
     }
 
     async function getCache(key) {
-      console.log('key in getCache: ', key)
+      console.log("key in getCache: ", key);
       try {
         //check redis if key is stored and return value
         const cachedData = JSON.parse(await redis.get(key));
-        console.log('cachedData: ', cachedData)
+        console.log("cachedData: ", cachedData);
         return cachedData;
       } catch (err) {
         console.log("err: ", err);
@@ -369,38 +368,60 @@ module.exports = function (graphQlPath) {
           return response;
         }
         // let cacheMutatioinRootField = null;
-
-        async function cacheMutations (keysToCache, response) {
-          console.log('response in cacheMutatioin: ', response)
+        let arrName = null;
+        async function cacheMutations(keysToCache, response) {
+          console.log("response in cacheMutatioin: ", response);
           for (const key in response) {
             // if (!cacheMutatioinRootField) cacheMutatioinRootField = response[key];
 
-            if (typeof response[key] === 'object' && !Array.isArray(response[key])) {
-              cacheMutations(keysToCache,response[key]);
-
+            if (
+              typeof response[key] === "object" &&
+              !Array.isArray(response[key])
+            ) {
+              cacheMutations(keysToCache, response[key]);
             } else if (Array.isArray(response[key])) {
-              console.log("we are in the array");
-              response[key].forEach(el => {
+              console.log("we are in the array key:", key);
+              arrName = key;
+              response[key].forEach((el) => {
                 console.log("el: ", el);
-                if (typeof el === 'object' && !Array.isArray(el)) {
+                if (typeof el === "object" && !Array.isArray(el)) {
                   console.log("we are in the array if statement");
-                  cacheMutations(keysToCache,response[key]);
+                  cacheMutations(keysToCache, response[key]);
                 }
-              })
+              });
             } else {
-              console.log('key: ', key)
-              for(let i = 0; i < keysToCache.length; i++) {
-                if(keysToCache[i].includes(key)) {
-                  console.log("key: ", keysToCache[i], "value: ", response[key]);
+              console.log("key: ", key);
+              for (let i = 0; i < keysToCache.length; i++) {
+                if (keysToCache[i].includes(key)) {
+                  console.log(
+                    "key: ",
+                    keysToCache[i],
+                    "value: ",
+                    response[key]
+                  );
                   //{person: {name: "Luke Skywalker"}}
                   //addPerson : {name :....}
                   console.log("mutationType:", mutationType);
-                  const responseSOmethignElse = {
-                    [mutationType]: {
-                      [key]: response[key]
-                    }
+                  let responseSOmethignElse;
+                  if (arrName) {
+                    responseSOmethignElse = {
+                      [mutationType]: {
+                        [arrName] : [
+                          {[key]: response[key]}
+                        ]
+                      },
+                    };
+                  } else {
+                    responseSOmethignElse = {
+                      [mutationType]: {
+                        [key]: response[key],
+                      },
+                    };
                   }
-                  redis.set(keysToCache[i], JSON.stringify(responseSOmethignElse));
+                  redis.set(
+                    keysToCache[i],
+                    JSON.stringify(responseSOmethignElse)
+                  );
                 }
               }
             }
@@ -415,13 +436,13 @@ module.exports = function (graphQlPath) {
             `;
             let response = await request(`${graphQlPath}`, document);
             const responseArr = Object.entries(response);
-          console.log('responseArr: ', responseArr)
+            console.log("responseArr: ", responseArr);
             console.log("responseLOOOOOOOOK HERE: ", response);
             cacheMutations(keysToCache, response);
-          
+
             // mutationForGQLResponse.forEach((key, index) => {
             //   getResponse(key, keysToCache[index]);
-              // redis.set(key, JSON.stringify(response));
+            // redis.set(key, JSON.stringify(response));
             // });
             sendResponse(response);
           } else {
