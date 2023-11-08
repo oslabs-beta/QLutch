@@ -6,7 +6,6 @@ const { parse } = require("graphql/language");
 module.exports = function (graphQlPath) {
   return async function (req, res, next) {
     console.log("---- in QLutch ---- ");
-    // console.log("req.body.query: ", req.body.query);
 
     //parse query from frontend
     const parsedQuery = parse(req.body.query);
@@ -51,6 +50,7 @@ module.exports = function (graphQlPath) {
           }`
     );
 
+    // PARSING THROUGH QUERIES WITH ARGS AND STORING THEM IN TYPESARR
     data.__schema.types.forEach((type) => {
       if (type.name === "Query" || type.name === "Mutation") {
         type.fields.forEach((type) => {
@@ -59,37 +59,28 @@ module.exports = function (graphQlPath) {
       }
     });
 
-    // PARSING THROUGH QUERIES WITH ARGS AND STORING THEM IN TYPESARR
 
-    // data.__schema.types[0].fields.forEach((type) => {
-    //   typesArr.push(type.name);
-    // });
-
-    // console.log("data.__schema.types", data.__schema.types);
 
     // PARSING THROUGH EACH FIELD TO CHECK TYPEOF EXIST TO FIND TYPES INSIDE NESTED QUERY
     data.__schema.types.forEach((type) => {
       // check if current type name is inside excluded typeArr
       if (!excludedTypeNames.includes(type.name)) {
-        // console.log("fields", type.fields);
         // if not in typeArr iterate through current field
         if (type.fields) {
           type.fields.forEach((field) => {
             // if ofType field is truthy && it's a string && it's included in typeArr
-            // console.log("field", field);
             if (
               field.type.ofType &&
               typeof field.type.ofType.name === "string" &&
               typesArr.includes(field.type.ofType.name.toLowerCase())
             ) {
-              // console.log("in if conditional");
               typesArr.push(field.name);
             }
           });
         }
       }
     });
-    // console.log("typesArr", typesArr);
+
     //checks parsedQuery for types used in query
     const findAllTypes = (obj, props) => {
       const valuesObj = {};
@@ -126,26 +117,22 @@ module.exports = function (graphQlPath) {
 
     //the actual query types being used in the query
     const valuesArr = Object.values(valuesObj);
-    // console.log("valuesArr", valuesArr);
+
     // Variables to store data from query received from visitor function
 
     let mutationType;
+
     const findMutationQueryType = (introspection, parsedQuery) => {
-      // console.log(introspection);
-      // console.log("parsedQuery: ", parsedQuery.definitions[0].selectionSet.selections[0].selectionSet);
       const types = introspection.__schema.types;
 
-      // console.log("mutations", types);
       types.forEach((type) => {
         if (type.name === "Mutation") {
           const mutations = type.fields;
           mutations.forEach((mutation) => {
             if (valuesArr.includes(mutation.name)) {
-              // console.log("mutation name", mutation.type.name.toLowerCase());
               mutationType = mutation.type.name.toLowerCase();
             }
           });
-          // console.log("type", type.fields);
         }
       });
       return mutationType;
@@ -164,11 +151,7 @@ module.exports = function (graphQlPath) {
     // visitor object for arguments is called from field method in main visitor object with the input of current field node
     const argVisitor = {
       Argument: (node) => {
-        // console.log('typeof node: ', typeof node.value.value)
-        // console.log('node: ', node)
-
         if (node.value.kind === "StringValue") {
-          // console.log('nodeValue:', node.value.value)
           return `(${node.name.value}:"${node.value.value}")`;
         } else return `(${node.name.value}:${node.value.value})`;
       },
@@ -181,7 +164,6 @@ module.exports = function (graphQlPath) {
     const visitor = {
       OperationDefinition: (node) => {
         operation = node.operation;
-        // console.log("operation: ", operation);
       },
       Field: (node) => {
         // create a var to store an current field name
