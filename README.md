@@ -1,12 +1,10 @@
 # QLutch
-# QLutch
 
 %%Logo%%
 
-<a href="https://www.npmjs.com/package/rediqless"><img alt="npm" src="https://img.shields.io/npm/v/rediqless"></a>
+<a href="https://github.com/oslabs-beta/QLutch/blob/main/LICENSE"><img alt="npm" src="https://github.com/oslabs-beta/QLutch/blob/main/LICENSE"></a>
 <a href="https://github.com/oslabs-beta/rediQLess/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/oslabs-beta/rediQLess"></a>
 <a href="https://github.com/oslabs-beta/rediQLess/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/oslabs-beta/rediQLess"></a>
-<img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/oslabs-beta/rediQLess">
 
 A caching solution for graphQL APIs that interfaces with Redis for high-speed data retrieval, combined with performance visualization.
 
