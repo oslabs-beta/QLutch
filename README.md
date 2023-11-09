@@ -2,12 +2,12 @@
 
 ![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/white-base.svg?raw=true)
 
-%%Logo%%
+
 
 <a href="https://github.com/oslabs-beta/rediQLess/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/oslabs-beta/rediQLess"></a>
 <a href="https://github.com/oslabs-beta/rediQLess/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/oslabs-beta/rediQLess"></a>
 
-A caching solution for graphQL APIs that interfaces with Redis for high-speed data retrieval, combined with performance visualization.
+A lightweight caching solution for graphQL APIs that interfaces with Redis for high-speed data retrieval, combined with performance visualization.
 
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
 ![NodeJS](https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white)
@@ -23,11 +23,9 @@ ____
 - Redis cache integration for graphQL queries and *Create* mutations.
 - Performance monitor.
 
-![[QLutch Data Flow (1).png]]
-![[Pasted image 20231106221347.png]]
+![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/data_flow.png?raw=true)
 
-%%Demo Gif%%
-![[Pasted image 20231106221334.png]]
+![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/bar_graph.png?raw=true)
 
 # Usage Notes
 - Caching support for Update and Delete mutations is not yet implemented.
@@ -35,12 +33,15 @@ ____
 # Roadmap
 
 # Installation
-- User creates application and installs Qlutch dependency via npm
+- User creates application and installs qlutch dependency via [npm](https://www.npmjs.com/package/qlutch) (npm install qlutch)
 - Set up Redis database in application
-- Require Qlutch and Redis in server file
-- Need two endpoints – one for qlutch and one for gql
-- Install qlutch as middleware in /qlutch – pass in “actualGraphql” endpoint and redis
-- User would need to return res.locals.response in /qlutch endpoint
+- Require qlutch and Redis in server file
+- For the dashboard visualizer, add express static path to node modules:
+![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/expressStatic.png?raw=true)
+- For the dashboard visualizer, add a dashboard endpoint with a path to the qlutch dist index file:
+![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/dashboard.png?raw=true)
+- Need two endpoints – one for qlutch and one for graphql. Install qlutch as middleware in /qlutch – pass in “actualGraphql” endpoint and redis. User would need to return res.locals.response in /qlutch endpoint.
+![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/endPoints.png?raw=true)
 - Fetch requests on frontend will need to be made to /qlutch
 
 # Authors
