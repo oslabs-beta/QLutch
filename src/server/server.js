@@ -24,13 +24,13 @@ app.get("/", (req, res) => {
 });
 
 // serving graphQL & graphiql
-app.use("/graphql", qlutch("http://localhost:4000/actualGraphql"), (req, res) => {
+app.use("/qlutch", qlutch("http://localhost:4000/graphql", redis), (req, res) => {
   // console.log("response from server file: ", res.locals.response);
   return res.json(res.locals.response);
 })
 
 app.use(
-  '/actualGraphql',
+  '/graphql',
   graphqlHTTP({
     schema,
     graphiql: true
