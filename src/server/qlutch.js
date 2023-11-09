@@ -1,9 +1,8 @@
-const redis = require("./redis");
 const { request, gql } = require("graphql-request");
 const { visit } = require("graphql");
 const { parse } = require("graphql/language");
 
-module.exports = function (graphQlPath) {
+module.exports = function (graphQlPath, redis) {
   return async function (req, res, next) {
     try {
       console.log("---- in QLutch ---- ");
@@ -12,7 +11,7 @@ module.exports = function (graphQlPath) {
       const parsedQuery = parse(req.body.query);
 
       /*USE INTROSPECTION TO IDENTIFY SCHEMA TYPES*/
-      
+
       // array to store all query types
       const typesArr = [];
 
@@ -61,8 +60,6 @@ module.exports = function (graphQlPath) {
         }
       });
 
-
-
       // parsing through schema types to idenitfy parent types of each field
       schemaTypes.__schema.types.forEach((type) => {
         // check if current type name is inside excluded typeArr
@@ -82,7 +79,6 @@ module.exports = function (graphQlPath) {
           }
         }
       });
-
 
       /*FIND TYPES IN CURRENT QUERY/MUTATION*/
 
@@ -148,7 +144,7 @@ module.exports = function (graphQlPath) {
       // var to store current operation
       let operation = "";
 
-      // var to store root field including args 
+      // var to store root field including args
       let rootField;
 
       // create a var to store an object of arrays
@@ -242,7 +238,10 @@ module.exports = function (graphQlPath) {
             if (obj.hasOwnProperty(key)) {
               if (typeof obj[key] === "object" && !Array.isArray(obj[key])) {
                 // if the property is an object, recursively merge it
-                merged[key] = combineCacheAndResponseData(merged[key] || {}, obj[key]);
+                merged[key] = combineCacheAndResponseData(
+                  merged[key] || {},
+                  obj[key]
+                );
               } else if (Array.isArray(obj[key])) {
                 // if the property is an array, handle each element
                 if (!merged[key]) {
@@ -251,7 +250,10 @@ module.exports = function (graphQlPath) {
                 obj[key].forEach((el, index) => {
                   //check if the element is an object and merge it if needed
                   if (typeof el === "object" && !Array.isArray(el)) {
-                    merged[key][index] = combineCacheAndResponseData(merged[key][index] || {}, el);
+                    merged[key][index] = combineCacheAndResponseData(
+                      merged[key][index] || {},
+                      el
+                    );
                   } else {
                     merged[key][index] = el;
                   }
@@ -271,14 +273,13 @@ module.exports = function (graphQlPath) {
         try {
           const cachedData = JSON.parse(await redis.get(key));
           return cachedData;
-        } 
-        catch (err) {
+        } catch (err) {
           const errObj = {
-            log: 'error in checking cache',
+            log: "error in checking cache",
             status: 400,
-            message: 'Invalid request'
-          }
-          return next(err, errObj)
+            message: "Invalid request",
+          };
+          return next(err, errObj);
         }
       }
 
@@ -287,12 +288,14 @@ module.exports = function (graphQlPath) {
         try {
           //array to store non-cached keys that need to be sent to gql to request response - used in createResponse and GQLResponse
           const keysToRequestArr = [];
-    
+
           // array to store cached keys - used in createResponse and GQLResponse
           const responseToMergeArr = [];
 
           //checks cache to see if data exists already in cache
-          const checkDataIsCachedArr = keysToCache.map((key) => checkCache(key));
+          const checkDataIsCachedArr = keysToCache.map((key) =>
+            checkCache(key)
+          );
 
           //array with whatever data is found in the cache
           const response = await Promise.all(checkDataIsCachedArr);
@@ -348,14 +351,13 @@ module.exports = function (graphQlPath) {
               let gqlResponse = await request(`${graphQlPath}`, document);
               redis.set(key, JSON.stringify(gqlResponse));
               return gqlResponse;
-            }
-            catch (err) {
+            } catch (err) {
               const errObj = {
-                log: 'error in getResponse',
+                log: "error in getResponse",
                 status: 400,
-                message: 'error in getResponse'
-              }
-              return next(err, errObj)
+                message: "error in getResponse",
+              };
+              return next(err, errObj);
             }
           }
 
@@ -386,9 +388,7 @@ module.exports = function (graphQlPath) {
                       if (arrayInMutation) {
                         mutationResponse = {
                           [mutationQueryType]: {
-                            [arrayInMutation]: [
-                              { [key]: response[key] }
-                            ]
+                            [arrayInMutation]: [{ [key]: response[key] }],
                           },
                         };
                       } else {
@@ -407,14 +407,13 @@ module.exports = function (graphQlPath) {
                   }
                 }
               }
-            }
-            catch (err) {
+            } catch (err) {
               const errObj = {
-                log: 'error in cacheMutations',
+                log: "error in cacheMutations",
                 status: 400,
-                message: 'error in cacheMutations'
-              }
-              return next(err, errObj)
+                message: "error in cacheMutations",
+              };
+              return next(err, errObj);
             }
           }
 
@@ -425,7 +424,7 @@ module.exports = function (graphQlPath) {
                 ${req.body.query}
               `;
               let gqlResponse = await request(`${graphQlPath}`, document);
-           
+
               cacheMutations(keysToCache, gqlResponse);
 
               sendResponse(gqlResponse);
@@ -435,7 +434,12 @@ module.exports = function (graphQlPath) {
               );
 
               const toBeMerged = await Promise.all(mergeArr);
-              sendResponse(combineCacheAndResponseData(...toBeMerged, ...responseToMergeArr));
+              sendResponse(
+                combineCacheAndResponseData(
+                  ...toBeMerged,
+                  ...responseToMergeArr
+                )
+              );
             }
           }
 
@@ -450,27 +454,24 @@ module.exports = function (graphQlPath) {
           }
 
           GQLResponse();
-
         } catch (err) {
           const errObj = {
-            log: 'sendResponse error',
+            log: "sendResponse error",
             status: 400,
-            message: 'Invalid response'
-          }
-          return next(err, errObj)
+            message: "Invalid response",
+          };
+          return next(err, errObj);
         }
       }
 
       createResponse();
-      
-    }
-    catch (err) {
+    } catch (err) {
       const errObj = {
-        log: 'QLutch error',
+        log: "QLutch error",
         status: 400,
-        message: 'Invalid request'
-      }
-      return next(err, errObj)
+        message: "Invalid request",
+      };
+      return next(err, errObj);
     }
   };
 };
