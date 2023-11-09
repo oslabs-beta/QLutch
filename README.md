@@ -25,6 +25,7 @@ ____
 
 ![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/data_flow_readme.png?raw=true)
 
+## Dashboard Visualizer
 ![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/demo.png?raw=true)
 
 # Usage Notes
@@ -40,9 +41,9 @@ ____
 ![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/expressStatic.png?raw=true)
 - For the dashboard visualizer, add a dashboard endpoint with a path to the qlutch dist index file:
 ![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/dashboard.png?raw=true)
-- Need two endpoints – one for qlutch and one for graphql. Install qlutch as middleware in /qlutch – pass in “actualGraphql” endpoint and redis. User would need to return res.locals.response in /qlutch endpoint.
+- Need two endpoints – one for qlutch and one for graphql. Install qlutch as middleware in /qlutch endpoint – pass in “graphql” endpoint and redis instance as arguments. User would need to return res.locals.response in /qlutch endpoint:
 ![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/endPoints.png?raw=true)
-- Fetch requests on frontend will need to be made to /qlutch
+- Fetch requests on frontend will need to be made to /qlutch endpoint
 
 # Authors
 - [@Michael-Weckop](https://github.com/Michael-Weckop)
