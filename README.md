@@ -29,10 +29,18 @@ ____
 
 # Usage Notes
 - Caching support for Update and Delete mutations is not yet implemented.
+
 # Roadmap
-- Mutation support for Update and Delete operations
+
 # Installation
-# Compatible Techs
+- User creates application and installs Qlutch dependency via npm
+- Set up Redis database in application
+- Require Qlutch and Redis in server file
+- Need two endpoints – one for qlutch and one for gql
+- Install qlutch as middleware in /qlutch – pass in “actualGraphql” endpoint and redis
+- User would need to return res.locals.response in /qlutch endpoint
+- Fetch requests on frontend will need to be made to /qlutch
+
 # Authors
 - [@Michael-Weckop](https://github.com/Michael-Weckop)
 - [@lrod8](https://github.com/lrod8)
