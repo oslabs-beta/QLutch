@@ -23,9 +23,9 @@ ____
 - Redis cache integration for graphQL queries and *Create* mutations.
 - Performance monitor.
 
-![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/data_flow.png?raw=true)
+![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/data_flow_readme.png?raw=true)
 
-![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/bar_graph.png?raw=true)
+![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/demo.png?raw=true)
 
 # Usage Notes
 - Caching support for Update and Delete mutations is not yet implemented.
