@@ -15,8 +15,7 @@ export default function Request() {
         const start = new Date();
         const query = document.getElementById("queryInput").value
         let byteSize = 0;
-        console.log(query)
-        // console.warn(xhr.responseText);
+
         // Requesting data from GraphQL
         fetch("http://localhost:4000/qlutch", {
             method: "POST",
@@ -24,10 +23,7 @@ export default function Request() {
                 "Content-Type": "application/json",
                 Accept: "application/json",
             },
-
-            // body: JSON.stringify(document.getElementById("queryInput").value)
             body: JSON.stringify({ query })
-            // body: JSON.stringify({ query: "{ person (id: 1) {name height hair_color films (id: 5) { title } } }" })
         })
             .then((response) => {
                 setStatus(response.status);
@@ -46,9 +42,9 @@ export default function Request() {
     }
 
     // Function to clear the Redis cache
-    const handleClearCache = () => {
-        fetch("http://localhost:4000/badCacheReset");
-    }
+    // const handleClearCache = () => {
+    //     fetch("http://localhost:4000/badCacheReset");
+    // }
 
     return (
         <>
@@ -62,17 +58,15 @@ export default function Request() {
                             className="input-textarea"
                             type="textarea"
                             placeholder="Enter query here..."
-                        //added this for developing purposes - don't forget to remove!!
-                        // value="{ person (id: 1) {name height hair_color films (id: 5) { title } } }"
                         />
                         <div className="input-buttons">
-                            <button
+                            {/* <button
                                 className="button"
                                 id="cache-button"
                                 onClick={handleClearCache}
                             >
                                 Clear Cache
-                            </button>
+                            </button> */}
                             <button
                                 className="button"
                                 onClick={getQueryResult}
