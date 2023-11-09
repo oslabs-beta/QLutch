@@ -1,5 +1,7 @@
 # QLutch
 
+![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/logo.png?raw=true)
+
 %%Logo%%
 
 <a href="https://github.com/oslabs-beta/rediQLess/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/oslabs-beta/rediQLess"></a>
