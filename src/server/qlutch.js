@@ -5,8 +5,6 @@ const { parse } = require("graphql/language");
 module.exports = function (graphQlPath, redis) {
   return async function (req, res, next) {
     try {
-      console.log("---- in QLutch ---- ");
-
       //parse query from frontend
       const parsedQuery = parse(req.body.query);
 
