@@ -3,7 +3,6 @@
 
 %%Logo%%
 
-<a target="_blank" href="https://github.com/oslabs-beta/QLutch//blob/main/LICENSE"><img alt="GitHub license" src="https://img.shields.io/QLutch/license/oslabs-beta/QLutch"></a> 
 <a href="https://www.npmjs.com/package/rediqless"><img alt="npm" src="https://img.shields.io/npm/v/rediqless"></a>
 <a href="https://github.com/oslabs-beta/rediQLess/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/oslabs-beta/rediQLess"></a>
 <a href="https://github.com/oslabs-beta/rediQLess/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/oslabs-beta/rediQLess"></a>
