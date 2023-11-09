@@ -424,11 +424,11 @@ module.exports = function (graphQlPath) {
               document = gql`
                 ${req.body.query}
               `;
-              let gqlRresponse = await request(`${graphQlPath}`, document);
+              let gqlResponse = await request(`${graphQlPath}`, document);
            
               cacheMutations(keysToCache, gqlResponse);
 
-              sendResponse(gqlRresponse);
+              sendResponse(gqlResponse);
             } else {
               const mergeArr = keysToRequestArr.map(
                 async (key) => await getResponseAndCache(key)
