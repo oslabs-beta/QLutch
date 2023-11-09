@@ -1,6 +1,6 @@
 # QLutch
 
-![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/logo.png?raw=true)
+![alt text](https://github.com/lrod8/Qlutch/blob/main/assets/white-base.svg?raw=true)
 
 %%Logo%%
 
