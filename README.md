@@ -1,5 +1,4 @@
 # QLutch
-# QLutch
 
 %%Logo%%
 
