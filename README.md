@@ -4,9 +4,6 @@
 
 
 
-<a href="https://github.com/oslabs-beta/QLutch/stargazers"><img alt="GitHub stars" src="https://github.com/oslabs-beta/QLutch/stargazers"></a>
-<a href="https://github.com/oslabs-beta/QLutch/issues"><img alt="GitHub issues" src="https://github.com/oslabs-beta/QLutch/issues"></a>
-
 A lightweight caching solution for graphQL APIs that interfaces with Redis for high-speed data retrieval, combined with performance visualization.
 
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
