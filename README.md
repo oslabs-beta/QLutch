@@ -4,8 +4,8 @@
 
 
 
-<a href="https://github.com/oslabs-beta/rediQLess/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/oslabs-beta/rediQLess"></a>
-<a href="https://github.com/oslabs-beta/rediQLess/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/oslabs-beta/rediQLess"></a>
+<a href="https://github.com/oslabs-beta/QLutch/stargazers"><img alt="GitHub stars" src="https://github.com/oslabs-beta/QLutch/stargazers"></a>
+<a href="https://github.com/oslabs-beta/QLutch/issues"><img alt="GitHub issues" src="https://github.com/oslabs-beta/QLutch/issues"></a>
 
 A lightweight caching solution for graphQL APIs that interfaces with Redis for high-speed data retrieval, combined with performance visualization.
 
