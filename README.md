@@ -28,8 +28,6 @@ ____
 # Usage Notes
 - Caching support for Update and Delete mutations is not yet implemented.
 
-# Roadmap
-
 # Installation
 - User creates application and installs qlutch dependency via [npm](https://www.npmjs.com/package/qlutch) (npm install qlutch)
 - Set up Redis database in application
